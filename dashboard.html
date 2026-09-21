@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — FireSentry Karhutla</title>
+<link rel="stylesheet" href="assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-mount"></div>
+
+  <main class="main">
+    <div id="topbar-mount"></div>
+
+    <div class="alert-banner risk-high" id="alert-banner">
+      <div>
+        <div class="alert-title" id="alert-title">⚠️ PERINGATAN DINI: RISIKO TINGGI</div>
+        <p class="alert-desc" id="alert-desc">Beberapa indikator menunjukkan peningkatan potensi Karhutla pada wilayah yang dipantau.</p>
+      </div>
+      <div class="alert-time" id="alert-time">UPDATE —</div>
+    </div>
+
+    <div class="grid grid-4" style="margin-bottom:18px;">
+      <div class="card stat-card">
+        <div class="stat-top">
+          <span class="stat-label">Suhu Udara</span>
+          <span class="stat-icon">🌡️</span>
+        </div>
+        <div class="stat-value" id="stat-suhu">— <span class="unit">°C</span></div>
+        <span class="stat-delta up" id="stat-suhu-delta"></span>
+      </div>
+
+      <div class="card stat-card">
+        <div class="stat-top">
+          <span class="stat-label">Kelembapan</span>
+          <span class="stat-icon">💧</span>
+        </div>
+        <div class="stat-value" id="stat-kelembapan">— <span class="unit">%</span></div>
+        <span class="stat-delta down" id="stat-kelembapan-delta"></span>
+      </div>
+
+      <a href="peta.html?fokus=hotspot" class="card stat-card" id="kartu-hotspot" style="text-decoration:none;color:inherit;cursor:pointer;transition:box-shadow .15s,transform .15s;" title="Klik untuk melihat lokasi titik panas di peta" onmouseover="this.style.boxShadow='0 6px 18px rgba(0,0,0,.12)';this.style.transform='translateY(-2px)';" onmouseout="this.style.boxShadow='';this.style.transform='';">
+        <div class="stat-top">
+          <span class="stat-label">Hotspot Terdeteksi</span>
+          <span class="stat-icon">🔥</span>
+        </div>
+        <div class="stat-value" id="stat-hotspot">— <span class="unit">titik</span></div>
+        <span class="stat-delta warn" id="stat-hotspot-delta"></span>
+        <span style="font-size:11px;color:var(--orange-600,#ea580c);font-weight:700;">📍 Lihat di peta →</span>
+      </a>
+
+      <div class="card stat-card aqi-card">
+        <div class="stat-top">
+          <span class="stat-label">Kualitas Udara</span>
+          <span class="stat-icon"><img id="aqi-face" src="assets/img/aqi/sensitive.svg" alt="Ikon kondisi kualitas udara"></span>
+        </div>
+        <div class="aqi-main-row">
+          <div>
+            <div class="stat-value" id="stat-pm25">— <span class="unit">AQI⁺ US</span></div>
+            <span class="stat-delta warn" id="stat-pm25-delta"></span>
+          </div>
+        </div>
+        <div class="aqi-pollutant"><span>Polutan utama: <strong>PM2.5</strong></span><strong id="stat-pm25-conc">— µg/m³</strong></div>
+        <div class="aqi-weather-row">
+          <span>🌡️ <strong id="aqi-temp">—°</strong></span>
+          <span>🧭 <strong id="aqi-wind">— km/h</strong></span>
+          <span>💧 <strong id="aqi-humidity">—%</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-left">
+            <h3>🔥 Tren Kondisi Cuaca (Karhutla)</h3>
+            <span class="tag" id="tren-tag">Prakiraan 24 jam ke depan</span>
+          </div>
+          <select class="select-chip" id="tren-rentang">
+            <option value="8">📅 24 Jam ke Depan</option>
+            <option value="24">📅 3 Hari ke Depan</option>
+          </select>
+        </div>
+        <div class="legend" style="margin-bottom:10px;">
+          <span class="legend-item"><span class="legend-dot" style="background:#fb923c"></span>Suhu (°C)</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>Kelembapan (%)</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#dc2626"></span>Indeks Potensi Karhutla</span>
+        </div>
+        <div style="position:relative;height:260px;">
+          <canvas id="trenChart"></canvas>
+        </div>
+        <p class="chart-hint" id="tren-hint">💡 Geser garis ambang batas (merah putus-putus) pada grafik untuk mengatur level siaga Indeks Potensi Karhutla.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>Status Risiko Wilayah</h3>
+          <span class="tag">Monitoring aktif</span>
+        </div>
+        <div class="risk-wrap">
+          <div style="position:relative;width:220px;height:220px;">
+            <canvas id="riskDonut"></canvas>
+          </div>
+          <div class="risk-legend">
+            <div class="item"><span class="dot" style="background:#dc2626"></span>Tinggi<span class="num" id="risk-tinggi">—</span></div>
+            <div class="item"><span class="dot" style="background:#f59e0b"></span>Sedang<span class="num" id="risk-sedang">—</span></div>
+            <div class="item"><span class="dot" style="background:#22c55e"></span>Rendah<span class="num" id="risk-rendah">—</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/batas-kecamatan.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/notifikasi.js"></script>
+<script>
+  ewsInitPage("dashboard", { title:"Dashboard Monitoring Karhutla", subtitle:"Panel pemantauan dan peringatan dini kebakaran hutan dan lahan" });
+
+  // Kartu PM2.5/AQI — menampilkan data REAL-TIME dari WAQI (jaringan yang
+  // skala AQI-nya sama dengan IQAir) kalau WAQI_CONFIG.token sudah diisi &
+  // sinkronisasi terakhir berhasil (lihat ewsSinkronKualitasUdara() di
+  // api.js). Kalau belum, fallback ke DASHBOARD_SUMMARY (data contoh) —
+  // sama seperti pola fallback BMKG/FIRMS di halaman ini.
+  async function renderKartuPm25(){
+    const waqi = (typeof ewsGetKualitasUdaraTerkini === "function") ? ewsGetKualitasUdaraTerkini() : null;
+    let iqair = null;
+    try{
+      const res = await fetch("data/air-quality-pekanbaru.json", {cache:"no-store"});
+      if(res.ok) iqair = await res.json();
+    }catch(e){ /* fallback ke WAQI */ }
+
+    // AQI utama: IQAir API jika secret sudah dikonfigurasi di GitHub Actions;
+    // bila belum, gunakan AQI berbasis PM2.5 dari WAQI + breakpoint EPA.
+    const hasIqair = iqair && Number.isFinite(Number(iqair.aqi));
+    const live = waqi ? {...waqi} : {};
+    if(hasIqair){
+      if(Number.isFinite(Number(iqair.pm25))) live.pm25 = Number(iqair.pm25);
+      const aqi = Number(iqair.aqi);
+      const kategori = typeof ewsKategoriAqi === "function" ? ewsKategoriAqi(aqi) : {label:"",kelas:"info",panah:""};
+      Object.assign(live, { aqi, pm25Status:kategori.label, kelasStatus:kategori.kelas, panah:kategori.panah, sumber:"IQAir AirVisual API", waktuUkur: iqair.measuredAt || live.waktuUkur || null });
+      if(live){
+        live.temperature = iqair.temperature; live.humidity = iqair.humidity; live.windSpeed = iqair.windSpeed; live.windDirection = iqair.windDirection;
+      }
+    }
+
+    const elValue = document.getElementById("stat-pm25");
+    const elDelta = document.getElementById("stat-pm25-delta");
+    const elConc = document.getElementById("stat-pm25-conc");
+    const elFace = document.getElementById("aqi-face");
+    const elTemp = document.getElementById("aqi-temp");
+    const elWind = document.getElementById("aqi-wind");
+    const elHumidity = document.getElementById("aqi-humidity");
+
+    if(live && Number.isFinite(Number(live.aqi))){
+      const aqi = Number(live.aqi);
+      elValue.innerHTML = `${Math.round(aqi)} <span class="unit">AQI⁺ US</span>`;
+      elDelta.className = "stat-delta " + (live.kelasStatus || "info");
+      const jamUkur = live.waktuUkur ? new Date(live.waktuUkur).toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"}) + " WIB" : "";
+      elDelta.textContent = `${live.panah || ""} ${live.pm25Status || ewsKategoriAqi(aqi).label}${jamUkur ? " · " + jamUkur : ""}`;
+      elConc.textContent = Number.isFinite(Number(live.pm25)) ? `${Number(live.pm25).toFixed(1)} µg/m³` : "—";
+      const face = aqi <= 50 ? "good" : aqi <= 100 ? "moderate" : aqi <= 150 ? "sensitive" : aqi <= 200 ? "unhealthy" : aqi <= 300 ? "very-unhealthy" : "hazardous";
+      elFace.src = `assets/img/aqi/${face}.svg`;
+      elFace.alt = `Ikon ${live.pm25Status || "kualitas udara"}`;
+      // Suhu & kelembapan dashboard diseragamkan dengan indikator EWS BMKG,
+      // bukan IQAir/WAQI, agar satu sumber cuaca dipakai untuk penilaian risiko.
+      const cuacaEws = (typeof ewsHitungRingkasanDashboard === "function") ? ewsHitungRingkasanDashboard() : null;
+      elTemp.textContent = cuacaEws && Number.isFinite(Number(cuacaEws.suhu)) ? `${Math.round(cuacaEws.suhu)}°` : "—°";
+      elWind.textContent = Number.isFinite(Number(live.windSpeed)) ? `${Math.round(live.windSpeed)} km/h` : "— km/h";
+      elHumidity.textContent = cuacaEws && Number.isFinite(Number(cuacaEws.kelembapan)) ? `${Math.round(cuacaEws.kelembapan)}%` : "—%";
+      elValue.title = `AQI⁺ US: ${Math.round(aqi)} · PM2.5: ${Number.isFinite(Number(live.pm25)) ? Number(live.pm25).toFixed(1) : "data tidak tersedia"} µg/m³ · Sumber AQI: ${live.sumber || "WAQI + EPA"}`;
+    } else {
+      elValue.innerHTML = `— <span class="unit">AQI⁺ US</span>`;
+      elDelta.className = "stat-delta info";
+      elDelta.textContent = "Menunggu data kualitas udara";
+      elConc.textContent = "—"; elTemp.textContent = "—°"; elWind.textContent = "— km/h"; elHumidity.textContent = "—%";
+    }
+  }
+  renderKartuPm25();
+
+  // Kartu Suhu Udara, Kelembapan, dan Hotspot Terdeteksi diisi di dalam
+  // renderRingkasanRisiko() (lihat fungsi renderRingkasanKartuAtas di bawah),
+  // supaya nilainya SELALU dihitung dari data Monitoring gabungan yang sama
+  // dipakai Status Risiko Wilayah, dan ikut ter-refresh begitu auto-sync
+  // BMKG/FIRMS selesai jalan — bukan lagi angka tetap.
+
+  // Jumlah wilayah per tingkat risiko, status kota, dan banner peringatan —
+  // dibungkus jadi satu fungsi supaya bisa dipanggil ULANG begitu auto-sync
+  // (BMKG + FIRMS) selesai jalan, tanpa perlu reload halaman.
+  let jumlahRisiko, statusKota, wilayahPerluDipantau, riskDonutInstance = null;
+
+  function daftarNamaSingkat(list, maks){
+    const nama = list.map(w => w.kecamatan);
+    if(nama.length <= maks) return nama.join(", ");
+    return nama.slice(0, maks).join(", ") + `, dan ${nama.length - maks} lainnya`;
+  }
+
+  const KONFIG_BANNER = {
+    Tinggi: { kelas:"risk-high", ikon:"⚠️", judul:"PERINGATAN DINI: RISIKO TINGGI",
+      desc:"Mayoritas wilayah yang dipantau berisiko Tinggi. Perlu kesiagaan dan patroli lapangan segera." },
+    Sedang: { kelas:"risk-medium", ikon:"⚠️", judul:"PERINGATAN DINI: RISIKO SEDANG",
+      desc:"Mayoritas wilayah yang dipantau berisiko Sedang. Perlu pemantauan lebih ketat." },
+    Rendah: { kelas:"risk-low", ikon:"✅", judul:"KONDISI AMAN: RISIKO RENDAH",
+      desc:"Mayoritas wilayah yang dipantau berada dalam kondisi normal." }
+  };
+
+  // Mengisi 3 kartu teratas (Suhu Udara, Kelembapan, Hotspot Terdeteksi) dari
+  // ewsHitungRingkasanDashboard() — sumber yang SAMA dengan Status Risiko
+  // Wilayah, supaya angkanya tidak pernah terasa kontradiktif satu sama lain
+  // (mis. hotspot masih menunjukkan angka lama padahal status sudah Rendah).
+  function renderRingkasanKartuAtas(){
+    const r = ewsHitungRingkasanDashboard();
+
+    document.getElementById("stat-suhu").innerHTML = `${r.suhu} <span class="unit">°C</span>`;
+    document.getElementById("stat-suhu-delta").className = "stat-delta info";
+    document.getElementById("stat-suhu-delta").textContent = `Rata-rata dari ${r.jumlahWilayah} wilayah dipantau`;
+
+    document.getElementById("stat-kelembapan").innerHTML = `${r.kelembapan} <span class="unit">%</span>`;
+    document.getElementById("stat-kelembapan-delta").className = "stat-delta info";
+    document.getElementById("stat-kelembapan-delta").textContent = `Rata-rata dari ${r.jumlahWilayah} wilayah dipantau`;
+
+    document.getElementById("stat-hotspot").innerHTML = `${r.hotspot} <span class="unit">titik</span>`;
+    const elHotspotDelta = document.getElementById("stat-hotspot-delta");
+    if(r.hotspotHariIni === null){
+      elHotspotDelta.className = "stat-delta info";
+      elHotspotDelta.textContent = "Belum ada sinkronisasi FIRMS";
+    } else if(r.hotspotHariIni === 0){
+      elHotspotDelta.className = "stat-delta up";
+      elHotspotDelta.textContent = "Tidak ada titik terdeteksi hari ini";
+    } else {
+      elHotspotDelta.className = "stat-delta warn";
+      elHotspotDelta.textContent = `▲ ${r.hotspotHariIni} titik terdeteksi hari ini`;
+    }
+  }
+
+  function renderRingkasanRisiko(){
+    renderRingkasanKartuAtas();
+    // Jumlah wilayah per tingkat risiko dihitung langsung dari data Monitoring
+    // terkini (termasuk update petugas & hasil auto-sync) agar Dashboard selalu
+    // sinkron dengan Monitoring.
+    const dataWilayahTerkini = ewsGetWilayahRisikoGabungan();
+    jumlahRisiko = {
+      tinggi: dataWilayahTerkini.filter(w=>w.risiko==="Tinggi").length,
+      sedang: dataWilayahTerkini.filter(w=>w.risiko==="Sedang").length,
+      rendah: dataWilayahTerkini.filter(w=>w.risiko==="Rendah").length
+    };
+    document.getElementById("risk-tinggi").textContent = jumlahRisiko.tinggi + " wilayah";
+    document.getElementById("risk-sedang").textContent = jumlahRisiko.sedang + " wilayah";
+    document.getElementById("risk-rendah").textContent = jumlahRisiko.rendah + " wilayah";
+
+    // Status risiko KOTA yang ditampilkan sebagai label UTAMA (donut & banner)
+    // mengikuti warna yang PALING DOMINAN (mayoritas wilayah), supaya visualnya
+    // tidak terasa kontradiktif (donut hijau tapi label "Tinggi"). Kalau masih
+    // ada wilayah Sedang/Tinggi di luar mayoritas Rendah, itu ditampilkan
+    // sebagai CATATAN tambahan (bukan disembunyikan) — lihat
+    // ewsHitungStatusMayoritas() di data.js.
+    statusKota = ewsHitungStatusMayoritas(jumlahRisiko);
+    wilayahPerluDipantau = dataWilayahTerkini.filter(w => w.risiko === "Tinggi" || w.risiko === "Sedang");
+
+    // Banner peringatan di atas mengikuti label mayoritas: warna, judul, ikon
+    // dasarnya menyesuaikan status dominan, tapi deskripsinya tetap menyebutkan
+    // wilayah yang perlu dipantau kalau ada (tidak hilang begitu saja).
+    const banner = document.getElementById("alert-banner");
+    const cfg = KONFIG_BANNER[statusKota];
+    banner.classList.remove("risk-high", "risk-medium", "risk-low");
+    banner.classList.add(cfg.kelas);
+    document.getElementById("alert-title").textContent = `${cfg.ikon} ${cfg.judul}`;
+
+    let descLengkap = cfg.desc;
+    if(wilayahPerluDipantau.length > 0){
+      descLengkap += ` Namun, ${wilayahPerluDipantau.length} wilayah (${daftarNamaSingkat(wilayahPerluDipantau, 3)}) perlu tetap dipantau.`;
+    }
+    document.getElementById("alert-desc").textContent = descLengkap;
+
+    // Jam update diambil dari waktu sinkronisasi data Monitoring yang
+    // sebenarnya (ewsWaktuSyncTerakhir), atau jika belum pernah disinkron,
+    // memakai waktu saat halaman ini dibuka — supaya jam yang ditampilkan
+    // selalu benar-benar mencerminkan kapan data terakhir diperbarui.
+    const waktuSyncIso = (typeof ewsWaktuSyncTerakhir === "function") ? ewsWaktuSyncTerakhir() : null;
+    const waktuUpdate = new Date(waktuSyncIso || Date.now());
+    document.getElementById("alert-time").textContent = "UPDATE " +
+      waktuUpdate.toLocaleTimeString("id-ID", { hour:"2-digit", minute:"2-digit" }) + " WIB";
+
+    // Donut status risiko — buat ulang (destroy dulu) supaya bisa dipanggil
+    // lagi setelah auto-sync tanpa menumpuk beberapa instance Chart.js.
+    if(typeof Chart !== "undefined" && document.getElementById("riskDonut")){
+      if(riskDonutInstance) riskDonutInstance.destroy();
+      const r = jumlahRisiko;
+      riskDonutInstance = new Chart(document.getElementById("riskDonut"), {
+        type: "doughnut",
+        data: {
+          labels: ["Tinggi","Sedang","Rendah"],
+          datasets: [{ data:[r.tinggi, r.sedang, r.rendah], backgroundColor:["#dc2626","#f59e0b","#22c55e"], borderWidth:0 }]
+        },
+        options: {
+          cutout: "72%",
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins: { legend:{ display:false }, tooltip:{ enabled:true } }
+        },
+        plugins: [{
+          id:"centerText",
+          afterDraw(chart){
+            const {ctx, chartArea:{width, height, top, left}} = chart;
+            ctx.save();
+            ctx.textAlign="center"; ctx.textBaseline="middle";
+            ctx.font="800 20px Inter, sans-serif"; ctx.fillStyle="#0f172a";
+            ctx.fillText(statusKota.toUpperCase(), left+width/2, top+height/2 - 8);
+            ctx.font="600 11px Inter, sans-serif"; ctx.fillStyle="#64748b";
+            ctx.fillText(
+              wilayahPerluDipantau.length > 0 ? `${wilayahPerluDipantau.length} wilayah waspada` : "risiko saat ini",
+              left+width/2, top+height/2 + 14
+            );
+            ctx.restore();
+          }
+        }]
+      });
+    }
+  }
+
+  renderRingkasanRisiko();
+
+  // Auto-sync saat BARU LOGIN / masuk Dashboard (aturan sama seperti di
+  // Monitoring: hanya jalan kalau belum pernah sync atau sudah lewat 12 jam)
+  // — supaya tidak perlu buka halaman Monitoring dulu secara manual untuk
+  // mendapat data BMKG/FIRMS terbaru. Begitu selesai, render ulang ringkasan
+  // risiko + banner + donut supaya langsung mencerminkan data terbaru.
+  if(typeof ewsAutoSyncMonitoringJikaPerlu === "function"){
+    ewsAutoSyncMonitoringJikaPerlu().then(disinkronkan => {
+      if(disinkronkan){
+        renderRingkasanRisiko();
+        renderKartuPm25();
+      }
+    });
+  }
+
+  // Auto-refresh KHUSUS kartu PM2.5/AQI tiap 15 menit selagi Dashboard
+  // dibiarkan terbuka — terpisah dari sync BMKG+FIRMS di atas (yang sengaja
+  // hanya tiap 12 jam) karena WAQI cuma 1 panggilan API ringan, jadi wajar
+  // kalau lebih sering. Tanpa ini, kartu PM2.5 akan beku sampai halaman
+  // di-reload manual (dan reload pun percuma kalau belum 12 jam).
+  if(typeof ewsAutoSyncPm25JikaPerlu === "function"){
+    setInterval(() => {
+      ewsAutoSyncPm25JikaPerlu().then(disegarkan => {
+        if(disegarkan) renderKartuPm25();
+      });
+    }, 15 * 60 * 1000);
+  }
+
+  // Jaga-jaga bila library Chart.js gagal termuat (mis. tidak ada koneksi internet)
+  if (typeof Chart === "undefined") {
+    document.querySelectorAll("#trenChart, #riskDonut").forEach(c => {
+      const wrap = document.createElement("div");
+      wrap.style.cssText = "padding:24px;text-align:center;color:var(--text-400);font-size:12.5px;";
+      wrap.textContent = "Grafik tidak dapat dimuat — pastikan perangkat terhubung ke internet (library Chart.js dimuat dari CDN).";
+      c.replaceWith(wrap);
+    });
+    throw new Error("Chart.js gagal dimuat dari CDN.");
+  }
+
+  // ---------- Grafik tren cuaca (bar suhu + 2 garis) ----------
+  // Data ASLI ditarik dari prakiraan BMKG (ewsAmbilTrenCuacaBmkg di api.js).
+  // Kalau BMKG gagal dihubungi (offline/CORS/adm4 belum diisi), otomatis
+  // memakai data contoh (ewsBuatTrenContohFallback di data.js) supaya
+  // tampilan tetap berjalan — sama seperti pola fallback di halaman lain.
+  let trenChartInstance = null;
+
+  // Ambang siaga Indeks Potensi Karhutla: garis putus-putus yang bisa
+  // digeser langsung dengan mouse pada grafik. Nilainya disimpan di
+  // localStorage supaya tetap sama walau halaman dimuat ulang atau
+  // rentang waktu grafik diganti.
+  const AMBANG_SIAGA_KEY = "ews_karhutla_ambang_siaga";
+  function ambilAmbangSiaga(){
+    const v = parseInt(localStorage.getItem(AMBANG_SIAGA_KEY), 10);
+    return Number.isFinite(v) ? v : 70;
+  }
+  function simpanAmbangSiaga(v){
+    localStorage.setItem(AMBANG_SIAGA_KEY, String(v));
+  }
+
+  async function muatTrenChart(jumlahTitik){
+    const tagEl = document.getElementById("tren-tag");
+    tagEl.textContent = jumlahTitik <= 8 ? "Prakiraan 24 jam ke depan" : "Prakiraan 3 hari ke depan";
+
+    let data = await ewsAmbilTrenCuacaBmkg(null, jumlahTitik);
+    if(!data) data = ewsBuatTrenContohFallback(jumlahTitik);
+
+    // Untuk rentang 3 hari, sertakan tanggal pada label supaya tidak
+    // ambigu antar hari (BMKG hanya balikin jam pada versi 24-jam).
+    const labelTampil = (jumlahTitik > 8 && data.labelTanggal)
+      ? data.label.map((jam,i) => `${data.labelTanggal[i]} ${jam}`)
+      : data.label;
+
+    const ambangSiaga = ambilAmbangSiaga();
+
+    if(trenChartInstance) trenChartInstance.destroy();
+    trenChartInstance = new Chart(document.getElementById("trenChart"), {
+      type: "bar",
+      data: {
+        labels: labelTampil,
+        datasets: [
+          { type:"bar", label:"Suhu (°C)", data: data.suhu, backgroundColor:"#fdba74", borderRadius:6, yAxisID:"y", order:3 },
+          { type:"line", label:"Kelembapan (%)", data: data.kelembapan, borderColor:"#f59e0b", backgroundColor:"#f59e0b", tension:.35, yAxisID:"y", pointRadius:4, borderWidth:3, order:2, z:2 },
+          { type:"line", label:"Indeks Potensi Karhutla", data: data.indeksPotensi, borderColor:"#dc2626", backgroundColor:"#dc2626", tension:.35, yAxisID:"y1", pointRadius:4, borderWidth:3, order:1, z:3 }
+        ]
+      },
+      options: {
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{ display:false },
+          annotation:{
+            annotations:{
+              ambangSiagaLine:{
+                type:"line",
+                yScaleID:"y1",
+                yMin: ambangSiaga,
+                yMax: ambangSiaga,
+                borderColor:"#dc2626",
+                borderWidth:2,
+                borderDash:[6,4],
+                draggable:true,
+                label:{
+                  display:true,
+                  content:`Ambang Siaga: ${ambangSiaga}`,
+                  position:"start",
+                  backgroundColor:"rgba(220,38,38,0.9)",
+                  color:"#fff",
+                  font:{ size:11, weight:"bold" },
+                  padding:4
+                },
+                enter({element}){ element.label.options.backgroundColor = "rgba(153,27,27,0.95)"; },
+                leave({element}){ element.label.options.backgroundColor = "rgba(220,38,38,0.9)"; },
+                onDragEnd({element}){
+                  const nilaiBaru = Math.max(0, Math.min(100, Math.round(element.options.yMin)));
+                  element.options.yMin = nilaiBaru;
+                  element.options.yMax = nilaiBaru;
+                  element.label.options.content = `Ambang Siaga: ${nilaiBaru}`;
+                  simpanAmbangSiaga(nilaiBaru);
+                  trenChartInstance.update();
+                }
+              }
+            }
+          }
+        },
+        scales:{
+          y:{ position:"left", min:0, max:100, title:{display:true, text:"Suhu (°C) & Kelembapan (%)"} },
+          y1:{ position:"right", min:0, max:100, grid:{drawOnChartArea:false}, title:{display:true, text:"Indeks Potensi Karhutla"} }
+        }
+      }
+    });
+  }
+
+  document.getElementById("tren-rentang").addEventListener("change", (e) => {
+    muatTrenChart(parseInt(e.target.value, 10));
+  });
+
+  muatTrenChart(EWS_TREN_JUMLAH_TITIK_24JAM);
+</script>
+</body>
+</html>

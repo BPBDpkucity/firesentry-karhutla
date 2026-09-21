@@ -1,0 +1,23 @@
+{
+  "Pekanbaru Kota": null,
+  "Tenayan Raya": null,
+  "Rumbai": null,
+  "Rumbai Barat": null,
+  "Rumbai Timur": null,
+  "Kulim": null,
+  "Bukit Raya": null,
+  "Marpoyan Damai": null,
+  "Payung Sekaki": null,
+  "Tuah Madani": null,
+  "Binawidya": null,
+  "Sukajadi": null,
+  "Sail": null,
+  "Lima Puluh": null,
+  "Senapelan": null,
+  "_meta": {
+    "diperbaruiPada": null,
+    "sumber": "Belum pernah dijalankan — workflow GitHub Actions (.github/workflows/cek-status-karhutla.yml) baru aktif setelah repo di-push ke GitHub dengan secrets (TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, FIRMS_MAP_KEY) terisi.",
+    "kecamatanGagal": [],
+    "riwayatEskalasi": []
+  }
+}

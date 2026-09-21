@@ -1,0 +1,17 @@
+{
+  "source": "WAQI / fallback",
+  "city": "Pekanbaru",
+  "state": "Riau",
+  "country": "Indonesia",
+  "aqi": null,
+  "aqiScale": "US AQI",
+  "mainPollutant": "p2",
+  "pm25": null,
+  "temperature": null,
+  "humidity": null,
+  "windSpeed": null,
+  "windDirection": null,
+  "measuredAt": null,
+  "fetchedAt": null,
+  "note": "IQAir API belum dikonfigurasi. Dashboard menggunakan WAQI untuk PM2.5 dan perhitungan US AQI berbasis breakpoint EPA."
+}

@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Riwayat Kejadian — FireSentry Karhutla</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-mount"></div>
+
+  <main class="main">
+    <div id="topbar-mount"></div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-left">
+          <h3>Riwayat Kejadian Karhutla</h3>
+          <span class="tag" id="jumlah-riwayat"></span>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <select class="select-chip" id="filter-status-riwayat">
+            <option value="">Semua Status</option>
+            <option value="Ditangani">Ditangani</option>
+            <option value="Selesai">Selesai</option>
+          </select>
+          <input class="select-chip" id="cari-riwayat" placeholder="Cari lokasi / ID...">
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID Kejadian</th>
+              <th>Tanggal</th>
+              <th>Lokasi</th>
+              <th>Luas Area</th>
+              <th>Penyebab</th>
+              <th>Petugas</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="riwayat-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px;">
+      <div class="card-head"><h3>Tambah Kejadian Karhutla</h3></div>
+      <form id="form-riwayat">
+        <p class="form-section-title">Informasi Dasar</p>
+        <div class="grid grid-3">
+          <div class="field">
+            <label>Tanggal Kejadian</label>
+            <input type="date" id="input-tanggal" required>
+          </div>
+          <div class="field">
+            <label>Lokasi (Kelurahan, Kecamatan)</label>
+            <input type="text" id="input-lokasi" placeholder="Contoh: Kel. Rejosari, Tenayan Raya" required>
+          </div>
+          <div class="field">
+            <label>Luas Area</label>
+            <input type="text" id="input-luas" placeholder="Contoh: 2.4 Ha" required>
+          </div>
+          <div class="field">
+            <label>Penyebab</label>
+            <input type="text" id="input-penyebab" placeholder="Contoh: Pembukaan lahan" required>
+          </div>
+          <div class="field">
+            <label>Petugas / Tim Penanganan</label>
+            <input type="text" id="input-petugas" placeholder="Contoh: Tim Damkarhutla Sektor 1" required>
+          </div>
+          <div class="field">
+            <label>Nama Petugas</label>
+            <input type="text" id="input-nama-petugas" placeholder="Contoh: Andi Saputra">
+          </div>
+          <div class="field">
+            <label>Jenis Lahan</label>
+            <select id="input-jenis-lahan">
+              <option value="">Pilih jenis lahan</option>
+              <option>Lahan Gambut</option>
+              <option>Perkebunan Sawit</option>
+              <option>Hutan Sekunder</option>
+              <option>Semak Belukar</option>
+              <option>Lahan Mineral</option>
+              <option>Pemukiman</option>
+              <option>Lainnya</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Tujuan Monitoring</label>
+            <input type="text" id="input-tujuan" placeholder="Contoh: Memastikan api tidak menjalar ke pemukiman">
+          </div>
+          <div class="field">
+            <label>Jumlah Terdampak</label>
+            <input type="text" id="input-terdampak" placeholder="Contoh: 8 KK, 2.4 Ha lahan">
+          </div>
+          <div class="field">
+            <label>Status</label>
+            <select id="input-status-riwayat">
+              <option value="Ditangani">Ditangani</option>
+              <option value="Selesai">Selesai</option>
+            </select>
+          </div>
+        </div>
+
+        <p class="form-section-title">Catatan &amp; Tindakan Lapangan</p>
+        <div class="grid-form-2">
+          <div class="field">
+            <label>Catatan Lokal</label>
+            <textarea id="input-catatan" rows="3" placeholder="Kondisi lapangan, kendala akses, laporan warga, dll."></textarea>
+          </div>
+          <div class="field">
+            <label>Ancaman dan Dampak</label>
+            <textarea id="input-ancaman" rows="3" placeholder="Potensi risiko dan dampak yang ditimbulkan"></textarea>
+          </div>
+          <div class="field">
+            <label>Tindakan Pencegahan</label>
+            <textarea id="input-pencegahan" rows="3" placeholder="Langkah pencegahan yang sudah/perlu dilakukan"></textarea>
+          </div>
+          <div class="field">
+            <label>Tindakan Penanganan</label>
+            <textarea id="input-penanganan" rows="3" placeholder="Langkah penanganan yang dilakukan di lapangan"></textarea>
+          </div>
+        </div>
+        <div class="field">
+          <label>Hasil Peninjauan</label>
+          <textarea id="input-hasil" rows="3" placeholder="Kesimpulan/hasil akhir peninjauan lapangan"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Simpan Kejadian</button>
+      </form>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Edit Kejadian -->
+<div id="modal-edit-overlay" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>Edit Kejadian Karhutla</h3>
+      <button type="button" class="modal-close" id="btn-tutup-modal" aria-label="Tutup">&times;</button>
+    </div>
+    <form id="form-edit-riwayat">
+      <p class="form-section-title">Informasi Dasar</p>
+      <div class="grid grid-3">
+        <div class="field">
+          <label>Tanggal Kejadian</label>
+          <input type="date" id="edit-tanggal" required>
+        </div>
+        <div class="field">
+          <label>Lokasi (Kelurahan, Kecamatan)</label>
+          <input type="text" id="edit-lokasi" required>
+        </div>
+        <div class="field">
+          <label>Luas Area</label>
+          <input type="text" id="edit-luas" required>
+        </div>
+        <div class="field">
+          <label>Penyebab</label>
+          <input type="text" id="edit-penyebab" required>
+        </div>
+        <div class="field">
+          <label>Petugas / Tim Penanganan</label>
+          <input type="text" id="edit-petugas" required>
+        </div>
+        <div class="field">
+          <label>Nama Petugas</label>
+          <input type="text" id="edit-nama-petugas">
+        </div>
+        <div class="field">
+          <label>Jenis Lahan</label>
+          <select id="edit-jenis-lahan">
+            <option value="">Pilih jenis lahan</option>
+            <option>Lahan Gambut</option>
+            <option>Perkebunan Sawit</option>
+            <option>Hutan Sekunder</option>
+            <option>Semak Belukar</option>
+            <option>Lahan Mineral</option>
+            <option>Pemukiman</option>
+            <option>Lainnya</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Tujuan Monitoring</label>
+          <input type="text" id="edit-tujuan">
+        </div>
+        <div class="field">
+          <label>Jumlah Terdampak</label>
+          <input type="text" id="edit-terdampak">
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="edit-status">
+            <option value="Ditangani">Ditangani</option>
+            <option value="Selesai">Selesai</option>
+          </select>
+        </div>
+      </div>
+
+      <p class="form-section-title">Catatan &amp; Tindakan Lapangan</p>
+      <div class="grid-form-2">
+        <div class="field">
+          <label>Catatan Lokal</label>
+          <textarea id="edit-catatan" rows="3"></textarea>
+        </div>
+        <div class="field">
+          <label>Ancaman dan Dampak</label>
+          <textarea id="edit-ancaman" rows="3"></textarea>
+        </div>
+        <div class="field">
+          <label>Tindakan Pencegahan</label>
+          <textarea id="edit-pencegahan" rows="3"></textarea>
+        </div>
+        <div class="field">
+          <label>Tindakan Penanganan</label>
+          <textarea id="edit-penanganan" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="field">
+        <label>Hasil Peninjauan</label>
+        <textarea id="edit-hasil" rows="3"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" id="btn-batal-modal">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Detail Kejadian -->
+<div id="modal-detail-overlay" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>Detail Kejadian — <span id="detail-id"></span></h3>
+      <button type="button" class="modal-close" id="btn-tutup-detail" aria-label="Tutup">&times;</button>
+    </div>
+    <div id="detail-body"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" id="btn-tutup-detail-2">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .modal-overlay{
+    display:none; position:fixed; inset:0; background:rgba(15,23,42,.45);
+    align-items:center; justify-content:center; z-index:100; padding:20px;
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal-box{
+    background:var(--card); border-radius:var(--radius-lg); width:100%; max-width:760px;
+    max-height:90vh; overflow-y:auto; padding:22px 24px; box-shadow:0 20px 60px rgba(15,23,42,.25);
+  }
+  .modal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .modal-head h3{ margin:0; }
+  .modal-close{
+    background:none; border:none; font-size:22px; line-height:1; color:var(--text-400); cursor:pointer;
+  }
+  .modal-close:hover{ color:var(--text-900); }
+  .modal-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:6px; }
+  .btn-text-edit{
+    background:none; border:none; color:var(--orange-600); font-size:12.5px; font-weight:700;
+    cursor:pointer; padding:0; text-decoration:underline;
+  }
+  .btn-text-edit:hover{ color:var(--orange-500); }
+  .btn-text-detail{
+    background:none; border:none; color:var(--text-600); font-size:12.5px; font-weight:700;
+    cursor:pointer; padding:0; text-decoration:underline;
+  }
+  .btn-text-detail:hover{ color:var(--text-900); }
+  .btn-text-hapus{
+    background:none; border:none; color:var(--red-600); font-size:12.5px; font-weight:700;
+    cursor:pointer; padding:0; text-decoration:underline;
+  }
+  .btn-text-hapus:hover{ color:#991b1b; }
+  .status-cell{ display:flex; align-items:center; }
+  .aksi-cell{ display:flex; gap:14px; }
+  .form-section-title{
+    font-size:12.5px; font-weight:800; letter-spacing:.3px; text-transform:uppercase;
+    color:var(--text-600); margin:18px 0 10px;
+  }
+  .form-section-title:first-of-type{ margin-top:0; }
+  .grid-form-2{ display:grid; grid-template-columns:1fr 1fr; gap:0 20px; }
+  .detail-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px 24px; margin-bottom:16px; }
+  .detail-item label{ display:block; font-size:11.5px; font-weight:700; color:var(--text-400); text-transform:uppercase; letter-spacing:.3px; margin-bottom:3px; }
+  .detail-item p{ margin:0; font-size:13.5px; color:var(--text-900); line-height:1.5; }
+  .detail-full{ grid-column:1 / -1; }
+</style>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/components.js"></script>
+<script>
+  ewsInitPage("riwayat", { title:"Riwayat Kejadian", subtitle:"Rekam jejak kejadian kebakaran hutan dan lahan yang telah ditangani" });
+
+  function renderRiwayat(){
+    const status = document.getElementById("filter-status-riwayat").value;
+    const cari = document.getElementById("cari-riwayat").value.toLowerCase();
+    const rows = ewsSemuaRiwayat()
+      .filter(r => !status || r.status === status)
+      .filter(r => r.lokasi.toLowerCase().includes(cari) || r.id.toLowerCase().includes(cari));
+
+    document.getElementById("jumlah-riwayat").textContent = rows.length + " kejadian";
+    document.getElementById("riwayat-body").innerHTML = rows.map(r => `
+      <tr>
+        <td><strong>${r.id}</strong></td>
+        <td>${r.tanggal}</td>
+        <td>${r.lokasi}</td>
+        <td>${r.luas}</td>
+        <td>${r.penyebab}</td>
+        <td>${r.petugas}</td>
+        <td>
+          <div class="status-cell">
+            <span class="badge ${r.status==='Selesai' ? 'badge-low' : 'badge-medium'}">${r.status}</span>
+          </div>
+        </td>
+        <td>
+          <div class="aksi-cell">
+            <button type="button" class="btn-text-detail" onclick="bukaModalDetail('${r.id}')">Detail</button>
+            <button type="button" class="btn-text-edit" onclick="bukaModalEdit('${r.id}')">Edit</button>
+            <button type="button" class="btn-text-hapus" onclick="konfirmasiHapusRiwayat('${r.id}')">Hapus</button>
+          </div>
+        </td>
+      </tr>`).join("") || `<tr><td colspan="8" style="text-align:center;color:var(--text-400);">Tidak ada data yang cocok.</td></tr>`;
+  }
+
+  document.getElementById("filter-status-riwayat").addEventListener("change", renderRiwayat);
+  document.getElementById("cari-riwayat").addEventListener("input", renderRiwayat);
+
+  /* ---------- Hapus Kejadian ---------- */
+  function konfirmasiHapusRiwayat(id){
+    const item = ewsSemuaRiwayat().find(r => r.id === id);
+    if(!item) return;
+    const yakin = confirm(`Hapus data kejadian ${item.id} (${item.lokasi})?\nTindakan ini tidak dapat dibatalkan.`);
+    if(!yakin) return;
+    ewsHapusRiwayat(id);
+    renderRiwayat();
+  }
+
+  /* ---------- Detail Kejadian (modal, hanya lihat) ---------- */
+  const modalDetailOverlay = document.getElementById("modal-detail-overlay");
+
+  function baris(label, value){
+    return `<div class="detail-item"><label>${label}</label><p>${value && String(value).trim() ? value : "-"}</p></div>`;
+  }
+
+  function bukaModalDetail(id){
+    const item = ewsSemuaRiwayat().find(r => r.id === id);
+    if(!item) return;
+    document.getElementById("detail-id").textContent = item.id;
+    document.getElementById("detail-body").innerHTML = `
+      <div class="detail-grid">
+        ${baris("Tanggal Kejadian", item.tanggal)}
+        ${baris("Status", item.status)}
+        ${baris("Lokasi", item.lokasi)}
+        ${baris("Luas Area", item.luas)}
+        ${baris("Penyebab", item.penyebab)}
+        ${baris("Jenis Lahan", item.jenisLahan)}
+        ${baris("Petugas / Tim Penanganan", item.petugas)}
+        ${baris("Nama Petugas", item.namaPetugas)}
+        ${baris("Tujuan Monitoring", item.tujuanMonitoring)}
+        ${baris("Jumlah Terdampak", item.jumlahTerdampak)}
+        <div class="detail-item detail-full">${baris("Catatan Lokal", item.catatanLokal)}</div>
+        <div class="detail-item detail-full">${baris("Ancaman dan Dampak", item.ancamanDampak)}</div>
+        <div class="detail-item detail-full">${baris("Tindakan Pencegahan", item.tindakanPencegahan)}</div>
+        <div class="detail-item detail-full">${baris("Tindakan Penanganan", item.tindakanPenanganan)}</div>
+        <div class="detail-item detail-full">${baris("Hasil Peninjauan", item.hasilPeninjauan)}</div>
+      </div>`;
+    modalDetailOverlay.classList.add("open");
+  }
+
+  function tutupModalDetail(){ modalDetailOverlay.classList.remove("open"); }
+
+  document.getElementById("btn-tutup-detail").addEventListener("click", tutupModalDetail);
+  document.getElementById("btn-tutup-detail-2").addEventListener("click", tutupModalDetail);
+  modalDetailOverlay.addEventListener("click", function(e){
+    if(e.target === modalDetailOverlay) tutupModalDetail();
+  });
+
+  /* ---------- Edit Kejadian (modal) ---------- */
+  let riwayatEditId = null;
+  const modalEditOverlay = document.getElementById("modal-edit-overlay");
+
+  function bukaModalEdit(id){
+    const item = ewsSemuaRiwayat().find(r => r.id === id);
+    if(!item) return;
+    riwayatEditId = id;
+    document.getElementById("edit-tanggal").value = item.tanggalISO || "";
+    document.getElementById("edit-lokasi").value = item.lokasi || "";
+    document.getElementById("edit-luas").value = item.luas || "";
+    document.getElementById("edit-penyebab").value = item.penyebab || "";
+    document.getElementById("edit-petugas").value = item.petugas || "";
+    document.getElementById("edit-nama-petugas").value = item.namaPetugas || "";
+    document.getElementById("edit-jenis-lahan").value = item.jenisLahan || "";
+    document.getElementById("edit-tujuan").value = item.tujuanMonitoring || "";
+    document.getElementById("edit-terdampak").value = item.jumlahTerdampak || "";
+    document.getElementById("edit-status").value = item.status || "Ditangani";
+    document.getElementById("edit-catatan").value = item.catatanLokal || "";
+    document.getElementById("edit-ancaman").value = item.ancamanDampak || "";
+    document.getElementById("edit-pencegahan").value = item.tindakanPencegahan || "";
+    document.getElementById("edit-penanganan").value = item.tindakanPenanganan || "";
+    document.getElementById("edit-hasil").value = item.hasilPeninjauan || "";
+    modalEditOverlay.classList.add("open");
+  }
+
+  function tutupModalEdit(){
+    modalEditOverlay.classList.remove("open");
+    riwayatEditId = null;
+  }
+
+  document.getElementById("btn-tutup-modal").addEventListener("click", tutupModalEdit);
+  document.getElementById("btn-batal-modal").addEventListener("click", tutupModalEdit);
+  modalEditOverlay.addEventListener("click", function(e){
+    if(e.target === modalEditOverlay) tutupModalEdit();
+  });
+
+  document.getElementById("form-edit-riwayat").addEventListener("submit", function(e){
+    e.preventDefault();
+    if(!riwayatEditId) return;
+    const tanggalRaw = document.getElementById("edit-tanggal").value;
+    const tanggalFmt = new Date(tanggalRaw).toLocaleDateString("id-ID", { day:"2-digit", month:"short", year:"numeric" });
+
+    ewsUpdateRiwayat(riwayatEditId, {
+      tanggal: tanggalFmt,
+      tanggalISO: tanggalRaw,
+      lokasi: document.getElementById("edit-lokasi").value,
+      luas: document.getElementById("edit-luas").value,
+      penyebab: document.getElementById("edit-penyebab").value,
+      petugas: document.getElementById("edit-petugas").value,
+      namaPetugas: document.getElementById("edit-nama-petugas").value,
+      jenisLahan: document.getElementById("edit-jenis-lahan").value,
+      tujuanMonitoring: document.getElementById("edit-tujuan").value,
+      jumlahTerdampak: document.getElementById("edit-terdampak").value,
+      status: document.getElementById("edit-status").value,
+      catatanLokal: document.getElementById("edit-catatan").value,
+      ancamanDampak: document.getElementById("edit-ancaman").value,
+      tindakanPencegahan: document.getElementById("edit-pencegahan").value,
+      tindakanPenanganan: document.getElementById("edit-penanganan").value,
+      hasilPeninjauan: document.getElementById("edit-hasil").value
+    });
+    tutupModalEdit();
+    renderRiwayat();
+  });
+
+  document.getElementById("form-riwayat").addEventListener("submit", function(e){
+    e.preventDefault();
+    const tanggalRaw = document.getElementById("input-tanggal").value;
+    const tanggalFmt = new Date(tanggalRaw).toLocaleDateString("id-ID", { day:"2-digit", month:"short", year:"numeric" });
+
+    ewsTambahRiwayat({
+      id: "KRH-" + tanggalRaw.replace(/-/g,"").slice(2) + "-" + String(Math.floor(Math.random()*90+10)),
+      tanggal: tanggalFmt,
+      tanggalISO: tanggalRaw,
+      lokasi: document.getElementById("input-lokasi").value,
+      luas: document.getElementById("input-luas").value,
+      penyebab: document.getElementById("input-penyebab").value,
+      petugas: document.getElementById("input-petugas").value,
+      namaPetugas: document.getElementById("input-nama-petugas").value,
+      jenisLahan: document.getElementById("input-jenis-lahan").value,
+      tujuanMonitoring: document.getElementById("input-tujuan").value,
+      jumlahTerdampak: document.getElementById("input-terdampak").value,
+      status: document.getElementById("input-status-riwayat").value,
+      catatanLokal: document.getElementById("input-catatan").value,
+      ancamanDampak: document.getElementById("input-ancaman").value,
+      tindakanPencegahan: document.getElementById("input-pencegahan").value,
+      tindakanPenanganan: document.getElementById("input-penanganan").value,
+      hasilPeninjauan: document.getElementById("input-hasil").value
+    });
+    this.reset();
+    renderRiwayat();
+  });
+
+  renderRiwayat();
+</script>
+</body>
+</html>

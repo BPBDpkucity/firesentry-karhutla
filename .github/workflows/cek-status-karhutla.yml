@@ -1,0 +1,54 @@
+name: FireSentry EWS — Cek Risiko & Telegram
+
+on:
+  workflow_dispatch:
+  schedule:
+    # GitHub Actions schedule berjalan dalam UTC. 00:00 UTC = 07:00 WIB.
+    - cron: '0 */3 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: firesentry-ews
+  cancel-in-progress: false
+
+jobs:
+  cek-ews:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Jalankan mesin EWS
+        env:
+          FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: node scripts/cek-status-karhutla.mjs
+
+      - name: Sinkronkan FDRS BMKG (FFMC + FWI)
+        run: node scripts/sync-bmkg-fdrs.mjs
+
+      - name: Sinkronkan AQI/cuaca Pekanbaru dari IQAir (opsional)
+        env:
+          IQAIR_API_KEY: ${{ secrets.IQAIR_API_KEY }}
+        run: node scripts/sync-air-quality.mjs
+
+      - name: Commit hasil status publik
+        run: |
+          git config user.name "FireSentry EWS Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/status-notifikasi-terakhir.json data/air-quality-pekanbaru.json data/bmkg-fdrs.json
+          if git diff --cached --quiet; then
+            echo "Tidak ada perubahan status yang perlu di-commit."
+          else
+            git commit -m "chore(ews): update status risiko otomatis"
+            git push
+          fi

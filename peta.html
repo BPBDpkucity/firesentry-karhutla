@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peta Wilayah — FireSentry Karhutla</title>
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-mount"></div>
+
+  <main class="main">
+    <div id="topbar-mount"></div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-left">
+          <h3>📍 Peta Sebaran Risiko &amp; Titik Panas — <span id="judul-lokasi">Kota Pekanbaru</span></h3>
+          <span class="tag" id="subjudul-lokasi">Data lokasi kecamatan &amp; titik panas terkini</span>
+        </div>
+        <div class="legend">
+          <span class="legend-item"><span class="legend-dot" style="background:#dc2626;border-radius:50%;"></span>Risiko Tinggi</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#f59e0b;border-radius:50%;"></span>Risiko Sedang</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#22c55e;border-radius:50%;"></span>Risiko Rendah</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#fff;border:2px solid #dc2626;border-radius:50%;"></span>Hotspot</span>
+          <span class="legend-item"><span class="legend-dot" style="background:rgba(30,44,74,.18);border:1.5px solid #1e2c4a;"></span>Batas Kecamatan</span>
+          <label class="legend-item" style="cursor:pointer;user-select:none;">
+            <input type="checkbox" id="toggle-pendidikan" style="width:auto;margin:0;" checked>
+            <span class="legend-dot" style="background:#2563eb;border-radius:50%;width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;line-height:1;">🎓</span>Pendidikan (TK-SMP Negeri)
+          </label>
+          <label class="legend-item" style="cursor:pointer;user-select:none;">
+            <input type="checkbox" id="toggle-kesehatan" style="width:auto;margin:0;" checked>
+            <span class="legend-dot" style="background:#ec4899;border-radius:50%;width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;line-height:1;">➕</span>Kesehatan (Puskesmas/Klinik)
+          </label>
+          <label class="legend-item" style="cursor:pointer;user-select:none;">
+            <input type="checkbox" id="toggle-rumahsakit" style="width:auto;margin:0;" checked>
+            <span class="legend-dot" style="background:#7c3aed;border-radius:50%;width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;line-height:1;">🏥</span>Rumah Sakit
+          </label>
+        </div>
+      </div>
+      <div id="banner-fokus" class="chip-info" style="display:none;margin-top:0;margin-bottom:14px;">
+        📍 Menampilkan fokus wilayah <strong id="banner-kecamatan"></strong>.
+        <a id="link-google-maps" href="#" target="_blank" rel="noopener" style="margin-left:auto;font-weight:700;color:var(--orange-600);white-space:nowrap;">🔗 Buka di Google Maps</a>
+        <a href="peta.html" style="font-weight:700;color:var(--orange-600);white-space:nowrap;">Tampilkan semua wilayah ✕</a>
+      </div>
+      <div id="map-canvas"></div>
+      <iframe id="google-embed" style="display:none;width:100%;height:520px;border:0;border-radius:var(--radius-md);" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/batas-kecamatan.js"></script>
+<script src="assets/js/components.js"></script>
+<script>
+  ewsInitPage("peta", { title:"Peta Wilayah", subtitle:"Visualisasi geografis sebaran risiko dan titik panas karhutla" });
+
+  const map = L.map("map-canvas").setView([EWS_CONFIG.koordinatPekanbaru.lat, EWS_CONFIG.koordinatPekanbaru.lng], 11.5);
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, HERE, Garmin, USGS, Intermap, INCREMENT P',
+    maxZoom: 19
+  }).addTo(map);
+
+  /* ---------------------------------------------------------
+     Garis batas PER KECAMATAN Kota Pekanbaru — sumber: GADM
+     (Database of Global Administrative Areas, gadm.org), bukan
+     lagi satu garis besar mengelilingi seluruh kota. Tiap
+     kecamatan diberi warna sesuai tingkat risikonya saat ini
+     (choropleth), mirip peta resmi BPS/Bappeda.
+
+     CATATAN: Binawidya, Tuah Madani & Marpoyan Damai (dahulu memakai
+     batas kecamatan pra-pemekaran "Tampan" & "Marpoyan") kini sudah
+     dipetakan dengan nama kecamatan resmi terkini dan cocok dengan
+     field `kecamatan` di data Monitoring. Kulim & Rumbai Timur SUDAH
+     dipakai sebagai nama kecamatan di data Monitoring, tetapi belum
+     punya batas poligon choropleth sendiri (GeoJSON presisi hasil
+     pemekaran 2020 belum tersedia bebas) — kedua kecamatan ini tetap
+     tampil sebagai titik/marker di peta, hanya belum sebagai area
+     berwarna. Detail keterbatasan tiap wilayah ada di catatan popupnya.
+     --------------------------------------------------------- */
+  const dataUntukWarnaBatas = ewsGetWilayahRisikoGabungan();
+  function cariRisikoKecamatan(nama){
+    const w = dataUntukWarnaBatas.find(x => x.kecamatan === nama);
+    return w ? w.risiko : null;
+  }
+
+  L.geoJSON(BATAS_KECAMATAN_PEKANBARU, {
+    style: (feature) => {
+      const risiko = cariRisikoKecamatan(feature.properties.kecamatan);
+      return {
+        color: "#1e2c4a", weight: 1.8, opacity: 0.85,
+        fillColor: riskColorFallback(risiko), fillOpacity: 0.18
+      };
+    },
+    onEachFeature: (feature, layer) => {
+      const risiko = cariRisikoKecamatan(feature.properties.kecamatan);
+      layer.bindTooltip(feature.properties.kecamatan, { permanent: true, direction: "center", className: "label-kecamatan" });
+      layer.bindPopup(`
+        <strong>Kec. ${feature.properties.kecamatan}</strong><br>
+        Tingkat Risiko: <b>${risiko || "—"}</b>
+        ${feature.properties.catatan ? `<br><span style="color:#94a3b8;font-size:11px;">ⓘ ${feature.properties.catatan}</span>` : ""}
+      `);
+      layer.on("mouseover", () => layer.setStyle({ fillOpacity: 0.35, weight: 2.5 }));
+      layer.on("mouseout", () => layer.setStyle({ fillOpacity: 0.18, weight: 1.8 }));
+    }
+  }).addTo(map);
+
+  function riskColorFallback(r){
+    if(r === "Tinggi") return "#dc2626";
+    if(r === "Sedang") return "#f59e0b";
+    if(r === "Rendah") return "#22c55e";
+    return "#94a3b8";
+  }
+
+  const riskColor = { "Tinggi":"#dc2626", "Sedang":"#f59e0b", "Rendah":"#22c55e" };
+
+  // Baca parameter URL (dikirim dari tombol "Peta" di Monitoring, dari
+  // "Lihat di Peta" di rincian Peringatan, atau dari kartu "Hotspot
+  // Terdeteksi" di Dashboard yang mengirim ?fokus=hotspot)
+  const paramUrl = new URLSearchParams(window.location.search);
+  const kecamatanFokus = paramUrl.get("kecamatan");
+  const namaFokus = paramUrl.get("nama"); // titik spesifik (kelurahan/wilayah), lebih presisi dari kecamatan
+  const fokusHotspot = paramUrl.get("fokus") === "hotspot"; // ?fokus=hotspot -> zoom ke SEMUA titik panas aktif
+
+  const semuaWilayah = ewsGetWilayahRisikoGabungan();
+  const markerPerKecamatan = {}; // referensi marker Leaflet per kecamatan
+  const markerPerNama = {};      // referensi marker Leaflet per titik spesifik (kelurahan/wilayah)
+
+  semuaWilayah.forEach(w => {
+    const marker = L.circleMarker([w.lat, w.lng], {
+      radius: 9 + Math.min(w.hotspot, 6),
+      color: "#fff", weight: 2,
+      fillColor: riskColor[w.risiko] || "#94a3b8",
+      fillOpacity: 0.85
+    }).addTo(map);
+    marker.bindPopup(`
+      <strong>${w.nama}</strong>${w.nama !== w.kecamatan ? ` <span style="color:#64748b;">(Kec. ${w.kecamatan})</span>` : ""}<br>
+      Tingkat Risiko: <b>${w.risiko}</b><br>
+      Suhu: ${w.suhu}°C &middot; Kelembapan: ${w.kelembapan}%<br>
+      Titik Panas: ${w.hotspot}<br>
+      <a href="https://www.google.com/maps/search/?api=1&query=${w.lat},${w.lng}" target="_blank" rel="noopener">🔗 Buka di Google Maps</a>
+    `);
+    (markerPerKecamatan[w.kecamatan] = markerPerKecamatan[w.kecamatan] || []).push({ marker, w });
+    markerPerNama[w.nama] = { marker, w };
+  });
+
+  // ---------------------------------------------------------
+  // Titik panas individual per wilayah — digambar sebanyak nilai
+  // "hotspot" pada data Monitoring (bukan lagi dari DATA_HOTSPOT
+  // yang jumlahnya tidak nyambung dengan angka di popup lingkaran
+  // besar). Disebar melingkar di sekitar titik pusat kecamatan
+  // supaya jumlah titik merah yang terlihat di peta = angka
+  // "Titik Panas" yang tertulis di popup wilayahnya.
+  // ---------------------------------------------------------
+  const semuaTitikPanasMarker = []; // dipakai oleh mode ?fokus=hotspot di bawah, supaya peta bisa zoom TEPAT ke titik-titik ini
+  semuaWilayah.forEach(w => {
+    if(!w.hotspot || w.hotspot <= 0) return;
+    for(let i = 0; i < w.hotspot; i++){
+      const sudut = (2 * Math.PI * i) / w.hotspot;
+      const jarak = 0.0025 + (i % 2) * 0.0012; // ~250-400m, diselang-seling biar tidak numpuk rapi
+      const lat = w.lat + Math.sin(sudut) * jarak;
+      const lng = w.lng + Math.cos(sudut) * jarak;
+      const marker = L.circleMarker([lat, lng], {
+        radius: 6, color:"#dc2626", weight:2, fillColor:"#fff", fillOpacity:0.9
+      }).addTo(map);
+      marker.bindPopup(`
+        🔥 <strong>Titik Panas ${i+1} dari ${w.hotspot}</strong><br>
+        Wilayah: ${w.nama} (Kec. ${w.kecamatan})<br>
+        Suhu sekitar: ${w.suhu}°C &middot; Kelembapan: ${w.kelembapan}%
+      `);
+      semuaTitikPanasMarker.push({ marker, w, lat, lng });
+    }
+  });
+
+  // Jika datang dengan titik SPESIFIK (?nama=...) → tampilkan Google Maps ASLI
+  // langsung di koordinat itu (jalan, nama tempat, dan detail persis seperti
+  // Google Maps biasa) — bukan lagi peta custom Leaflet yang detailnya terbatas.
+  if(namaFokus && markerPerNama[namaFokus]){
+    const { w } = markerPerNama[namaFokus];
+
+    document.getElementById("judul-lokasi").textContent = w.nama;
+    document.getElementById("subjudul-lokasi").textContent = "Fokus titik " + w.nama + " (Kec. " + w.kecamatan + ") — tampilan Google Maps";
+    document.getElementById("banner-kecamatan").textContent = w.nama + " — Kec. " + w.kecamatan;
+    document.getElementById("banner-fokus").style.display = "flex";
+    document.getElementById("link-google-maps").href = `https://www.google.com/maps/search/?api=1&query=${w.lat},${w.lng}`;
+
+    // Sembunyikan peta Leaflet, tampilkan Google Maps embed (resmi, gratis, tanpa API key)
+    document.getElementById("map-canvas").style.display = "none";
+    const embed = document.getElementById("google-embed");
+    embed.src = `https://www.google.com/maps?q=${w.lat},${w.lng}&z=16&output=embed`;
+    embed.style.display = "block";
+  }
+  // Kalau tidak ada titik spesifik, tapi ada kecamatan → fokuskan Leaflet ke semua titik kecamatan itu
+  // (dipakai kalau ada beberapa titik sekaligus dalam 1 kecamatan yang perlu dibandingkan posisinya)
+  else if(kecamatanFokus && markerPerKecamatan[kecamatanFokus]){
+    const grup = markerPerKecamatan[kecamatanFokus];
+
+    document.getElementById("judul-lokasi").textContent = kecamatanFokus;
+    document.getElementById("subjudul-lokasi").textContent = "Fokus wilayah " + kecamatanFokus;
+    document.getElementById("banner-kecamatan").textContent = kecamatanFokus;
+    document.getElementById("banner-fokus").style.display = "flex";
+    document.getElementById("link-google-maps").href = `https://www.google.com/maps/search/?api=1&query=${grup[0].w.lat},${grup[0].w.lng}`;
+
+    if(grup.length === 1){
+      map.setView([grup[0].w.lat, grup[0].w.lng], 14.5);
+    } else {
+      const bounds = L.latLngBounds(grup.map(g => [g.w.lat, g.w.lng]));
+      map.fitBounds(bounds, { padding: [60,60], maxZoom: 14.5 });
+    }
+    grup[0].marker.openPopup();
+  }
+  // Datang dari kartu "Hotspot Terdeteksi" di Dashboard (?fokus=hotspot) ->
+  // zoom peta supaya SEMUA titik panas yang sedang aktif terlihat sekaligus
+  // (bukan cuma satu wilayah), lalu buka popup titik pertamanya.
+  else if(fokusHotspot){
+    if(semuaTitikPanasMarker.length === 0){
+      document.getElementById("judul-lokasi").textContent = "Kota Pekanbaru";
+      document.getElementById("subjudul-lokasi").textContent = "Tidak ada titik panas terdeteksi saat ini";
+      document.getElementById("banner-kecamatan").textContent = "Tidak ada titik panas yang terdeteksi saat ini";
+      document.getElementById("banner-fokus").style.display = "flex";
+      document.getElementById("link-google-maps").style.display = "none";
+    } else {
+      document.getElementById("judul-lokasi").textContent = "Semua Titik Panas Terdeteksi";
+      document.getElementById("subjudul-lokasi").textContent = semuaTitikPanasMarker.length + " titik panas aktif di seluruh wilayah yang dipantau";
+      document.getElementById("banner-kecamatan").textContent = semuaTitikPanasMarker.length + " titik panas ditemukan di seluruh wilayah";
+      document.getElementById("banner-fokus").style.display = "flex";
+      document.getElementById("link-google-maps").href = `https://www.google.com/maps/search/?api=1&query=${semuaTitikPanasMarker[0].lat},${semuaTitikPanasMarker[0].lng}`;
+
+      if(semuaTitikPanasMarker.length === 1){
+        map.setView([semuaTitikPanasMarker[0].lat, semuaTitikPanasMarker[0].lng], 15);
+      } else {
+        const bounds = L.latLngBounds(semuaTitikPanasMarker.map(t => [t.lat, t.lng]));
+        map.fitBounds(bounds, { padding: [60,60], maxZoom: 15 });
+      }
+      semuaTitikPanasMarker[0].marker.openPopup();
+    }
+  }
+  // ---------------------------------------------------------
+  // Lapisan Titik Pendidikan (TK/SD/SMP Negeri) & Kesehatan
+  // (Puskesmas/Klinik) — data representatif per kecamatan,
+  // bisa disembunyikan/ditampilkan lewat centang pada legenda.
+  // ---------------------------------------------------------
+  const ikonPendidikan = L.divIcon({
+    className: "titik-fasilitas-icon",
+    html: '<div style="background:#2563eb;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);font-size:12px;">🎓</div>',
+    iconSize: [22, 22],
+    iconAnchor: [11, 11]
+  });
+  const ikonKesehatan = L.divIcon({
+    className: "titik-fasilitas-icon",
+    html: '<div style="background:#ec4899;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);font-size:12px;">➕</div>',
+    iconSize: [22, 22],
+    iconAnchor: [11, 11]
+  });
+  const ikonRumahSakit = L.divIcon({
+    className: "titik-fasilitas-icon",
+    html: '<div style="background:#7c3aed;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);font-size:13px;">🏥</div>',
+    iconSize: [24, 24],
+    iconAnchor: [12, 12]
+  });
+
+  const layerPendidikan = L.layerGroup(
+    TITIK_PENDIDIKAN.map(s => L.marker([s.lat, s.lng], { icon: ikonPendidikan }).bindPopup(`
+      <strong>${s.nama}</strong><br>
+      ${s.jenjang} &middot; Kec. ${s.kecamatan}<br>
+      <a href="https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}" target="_blank" rel="noopener">🔗 Buka di Google Maps</a>
+    `))
+  ).addTo(map);
+
+  const layerKesehatan = L.layerGroup(
+    TITIK_KESEHATAN.map(f => L.marker([f.lat, f.lng], { icon: ikonKesehatan }).bindPopup(`
+      <strong>${f.nama}</strong><br>
+      ${f.jenis} &middot; Kec. ${f.kecamatan}<br>
+      <a href="https://www.google.com/maps/search/?api=1&query=${f.lat},${f.lng}" target="_blank" rel="noopener">🔗 Buka di Google Maps</a>
+    `))
+  ).addTo(map);
+
+  const layerRumahSakit = L.layerGroup(
+    TITIK_RUMAH_SAKIT.map(r => L.marker([r.lat, r.lng], { icon: ikonRumahSakit }).bindPopup(`
+      <strong>${r.nama}</strong><br>
+      ${r.jenis} &middot; Kec. ${r.kecamatan}<br>
+      ${r.alamat}<br>
+      <a href="https://www.google.com/maps/search/?api=1&query=${r.lat},${r.lng}" target="_blank" rel="noopener">🔗 Buka di Google Maps</a>
+    `))
+  ).addTo(map);
+
+  document.getElementById("toggle-pendidikan").addEventListener("change", (e) => {
+    if(e.target.checked) map.addLayer(layerPendidikan); else map.removeLayer(layerPendidikan);
+  });
+  document.getElementById("toggle-kesehatan").addEventListener("change", (e) => {
+    if(e.target.checked) map.addLayer(layerKesehatan); else map.removeLayer(layerKesehatan);
+  });
+  document.getElementById("toggle-rumahsakit").addEventListener("change", (e) => {
+    if(e.target.checked) map.addLayer(layerRumahSakit); else map.removeLayer(layerRumahSakit);
+  });
+</script>
+</body>
+</html>

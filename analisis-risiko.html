@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analisis Risiko — FireSentry Karhutla</title>
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-mount"></div>
+
+  <main class="main">
+    <div id="topbar-mount"></div>
+
+    <div class="chip-info" style="margin-bottom:16px;">
+      ℹ️ Analisis pada halaman ini bersumber dari data geospasial <strong>Indeks Risiko Bencana</strong>
+      (file geodatabase ESRI <code>4 Risiko.gdb</code>, gaya BNPB/InaRISK), bukan dari data hotspot/cuaca
+      realtime yang dipakai halaman lain — lihat catatan metodologi di bagian bawah halaman.
+    </div>
+
+    <div class="grid grid-4" style="margin-bottom:18px;" id="kpi-mount"></div>
+
+    <div class="card" style="margin-bottom:18px;">
+      <div class="card-head">
+        <div class="card-head-left">
+          <h3>🗺️ Peta Kawasan Rawan Bencana (KRB) — <span id="judul-layer">Kebakaran Hutan &amp; Lahan</span></h3>
+          <span class="tag">Klasifikasi 3 kelas dari raster indeks risiko, Kota Pekanbaru</span>
+        </div>
+        <div class="legend" style="align-items:center;">
+          <select id="pilih-layer" class="input" style="padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:12.5px;font-weight:600;"></select>
+          <span class="legend-item"><span class="legend-dot" style="background:#dc2626;"></span>Tinggi</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#f59e0b;"></span>Sedang</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#22c55e;"></span>Rendah</span>
+          <span class="legend-item"><span class="legend-dot" style="background:rgba(30,44,74,.18);border:1.5px solid #1e2c4a;"></span>Batas Kecamatan</span>
+          <label class="legend-item" style="cursor:pointer;user-select:none;">
+            <input type="checkbox" id="toggle-raster" style="width:auto;margin:0;" checked>
+            Tampilkan overlay raster
+          </label>
+        </div>
+      </div>
+      <div id="map-krb" style="height:520px;border-radius:var(--radius-md);"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:18px;">
+      <div class="card-head">
+        <div class="card-head-left">
+          <h3>📋 Skor &amp; Kelas Risiko per Kecamatan</h3>
+          <span class="tag">Dihitung dari rata-rata (zonal mean) nilai raster di dalam tiap batas kecamatan</span>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Kecamatan</th>
+              <th>Skor Karhutla</th>
+              <th>Kelas Risiko Karhutla</th>
+              <th>Skor Multibahaya</th>
+              <th>Kelas Risiko Multibahaya</th>
+              <th>Cakupan Data*</th>
+            </tr>
+          </thead>
+          <tbody id="tabel-risiko-body"></tbody>
+        </table>
+      </div>
+      <p style="font-size:11.5px;color:var(--text-400);margin-top:10px;">
+        *Cakupan Data = persentase piksel raster bervalid-data (bukan NoData) di dalam wilayah kecamatan tsb. untuk
+        indeks risiko karhutla. Karena indeks ini hanya dimodelkan pada tutupan lahan bervegetasi/gambut rawan
+        terbakar, kecamatan yang didominasi area terbangun/perkotaan (cakupan raster &lt;5%) tidak memiliki nilai
+        zonal mean asli. Untuk 6 kecamatan tsb. (Lima Puluh, Pekanbaru Kota, Sail, Senapelan, Sukajadi, Tuah Madani),
+        skor Karhutla yang ditampilkan berlabel <span class="badge badge-neutral" style="font-size:10px;">(estimasi)</span>
+        merupakan hasil interpolasi jarak terbalik (IDW) dari kecamatan tetangga yang punya data valid — bukan
+        pengukuran langsung dari raster, sehingga akurasinya lebih rendah dibanding kecamatan lain pada tabel ini.
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-left">
+          <h3>📖 Metodologi &amp; Sumber Data</h3>
+        </div>
+      </div>
+      <div style="font-size:13.5px;color:var(--text-700);line-height:1.7;">
+        <p><strong>Sumber data:</strong> Geodatabase ESRI <code>4 Risiko.gdb</code> berisi 7 raster indeks risiko
+        bergaya BNPB/InaRISK yang mencakup wilayah Kota Pekanbaru — Cuaca Ekstrem, Gempabumi, Tanah Longsor,
+        Kekeringan, Banjir, <strong>Kebakaran Hutan &amp; Lahan</strong>, dan Multibahaya (indeks gabungan).
+        Resolusi asli 30 m/piksel, proyeksi sumber UTM Zona 47N (EPSG:32647), setiap piksel bernilai indeks
+        risiko kontinu berskala 0–1.</p>
+        <p><strong>Pemrosesan:</strong> setiap raster diproyeksikan ulang ke WGS84 (EPSG:4326) agar dapat
+        ditumpangsusunkan pada peta Leaflet, kemudian diklasifikasi menjadi 3 kelas Kawasan Rawan Bencana (KRB)
+        memakai ambang standar Indeks Risiko Bencana: <strong>Rendah</strong> (skor &lt; 0,34),
+        <strong>Sedang</strong> (0,34–0,66), dan <strong>Tinggi</strong> (≥ 0,67). Skor per kecamatan dihitung
+        sebagai rata-rata (zonal mean) nilai piksel yang berada di dalam batas administratif kecamatan
+        (sumber batas: GADM, lihat <code>assets/js/batas-kecamatan.js</code>).</p>
+        <p><strong>Keterbatasan:</strong> indeks Kebakaran Hutan &amp; Lahan tidak memiliki nilai (NoData) pada
+        area yang sepenuhnya terbangun/perkotaan, sehingga beberapa kecamatan inti kota (mis. Pekanbaru Kota,
+        Sail, Senapelan, Sukajadi) tidak memiliki skor karhutla yang representatif. Indeks Multibahaya tetap
+        tersedia untuk seluruh kecamatan karena mencakup jenis bahaya lain yang juga berlaku di area perkotaan.
+        Keterbatasan lain: ketujuh raster pada <code>4 Risiko.gdb</code> adalah produk <strong>Indeks Risiko</strong>
+        yang sudah final per jenis bahaya — geodatabase ini tidak menyertakan raster komponen <strong>Bahaya</strong>,
+        <strong>Kerentanan</strong>, maupun <strong>Kapasitas</strong> secara terpisah, sehingga tabel di atas belum
+        bisa menampilkan ketiga kelas tersebut sebagai kolom tersendiri.</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/batas-kecamatan.js"></script>
+<script src="assets/js/risiko-krb.js"></script>
+<script src="assets/js/components.js"></script>
+<script>
+  ewsInitPage("risiko", { title:"Analisis Risiko", subtitle:"Peta Kawasan Rawan Bencana (KRB) & skor risiko per kecamatan, bersumber dari data geospasial 4 Risiko.gdb" });
+
+  /* ---------- Dropdown pilihan layer ---------- */
+  const select = document.getElementById("pilih-layer");
+  RISIKO_KRB_LAYERS.forEach(l => {
+    const opt = document.createElement("option");
+    opt.value = l.key;
+    opt.textContent = l.label;
+    select.appendChild(opt);
+  });
+  select.value = "kebakaran";
+
+  /* ---------- Peta Leaflet ---------- */
+  const map = L.map("map-krb").setView([EWS_CONFIG.koordinatPekanbaru.lat, EWS_CONFIG.koordinatPekanbaru.lng], 11);
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, HERE, Garmin, USGS, Intermap, INCREMENT P',
+    maxZoom: 19
+  }).addTo(map);
+
+  let overlayRaster = null;
+  let layerBatas = null;
+
+  function cariBaris(kecamatan){
+    return TABEL_RISIKO_KECAMATAN.find(r => r.kecamatan === kecamatan);
+  }
+
+  function gambarUlang(layerKey){
+    const cfg = RISIKO_KRB_LAYERS.find(l => l.key === layerKey);
+    if(!cfg) return;
+
+    document.getElementById("judul-layer").textContent = cfg.label;
+
+    if(overlayRaster) map.removeLayer(overlayRaster);
+    if(document.getElementById("toggle-raster").checked){
+      overlayRaster = L.imageOverlay(cfg.file, cfg.bounds, { opacity: 0.85, interactive: false }).addTo(map);
+    }
+
+    if(layerBatas) map.removeLayer(layerBatas);
+    layerBatas = L.geoJSON(BATAS_KECAMATAN_PEKANBARU, {
+      style: (feature) => {
+        const baris = cariBaris(feature.properties.kecamatan);
+        const kelas = baris ? baris[layerKey + "_kelas"] : null;
+        return { color: "#1e2c4a", weight: 1.6, opacity: 0.75, fillColor: krbWarnaKelas(kelas), fillOpacity: 0.12 };
+      },
+      onEachFeature: (feature, layer) => {
+        const baris = cariBaris(feature.properties.kecamatan);
+        const skor = baris ? baris[layerKey] : null;
+        const kelas = baris ? baris[layerKey + "_kelas"] : null;
+        const estimasi = baris && layerKey === "kebakaran" && baris.kebakaran_estimasi;
+        layer.bindTooltip(feature.properties.kecamatan, { permanent: false, direction: "center" });
+        layer.bindPopup(`
+          <strong>Kec. ${feature.properties.kecamatan}</strong><br>
+          Indeks ${cfg.label}: <b>${skor !== null && skor !== undefined ? skor : "Data terbatas"}</b>${estimasi ? ' <span style="color:#64748b;font-size:11px;">(estimasi interpolasi, bukan data raster langsung)</span>' : ""}<br>
+          Kelas Risiko: <b>${kelas || "—"}</b>
+        `);
+        layer.on("mouseover", () => layer.setStyle({ fillOpacity: 0.32, weight: 2.4 }));
+        layer.on("mouseout", () => layer.setStyle({ fillOpacity: 0.12, weight: 1.6 }));
+      }
+    }).addTo(map);
+
+    renderKpi(cfg);
+    renderTabel(layerKey);
+  }
+
+  /* ---------- Kartu KPI persentase luas kelas ---------- */
+  function renderKpi(cfg){
+    const mount = document.getElementById("kpi-mount");
+    mount.innerHTML = `
+      <div class="card stat-card">
+        <div class="stat-top"><span class="stat-label">Kelas Tinggi</span><span class="stat-icon">🔴</span></div>
+        <div class="stat-value">${cfg.pctTinggi}<span class="unit">% luas</span></div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-top"><span class="stat-label">Kelas Sedang</span><span class="stat-icon">🟠</span></div>
+        <div class="stat-value">${cfg.pctSedang}<span class="unit">% luas</span></div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-top"><span class="stat-label">Kelas Rendah</span><span class="stat-icon">🟢</span></div>
+        <div class="stat-value">${cfg.pctRendah}<span class="unit">% luas</span></div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-top"><span class="stat-label">Skor Maksimum</span><span class="stat-icon">📈</span></div>
+        <div class="stat-value">${cfg.max}<span class="unit">/ 1,00</span></div>
+      </div>`;
+  }
+
+  /* ---------- Tabel per kecamatan ---------- */
+  function renderTabel(layerKey){
+    const tbody = document.getElementById("tabel-risiko-body");
+    const urut = [...TABEL_RISIKO_KECAMATAN].sort((a,b) => {
+      const av = a[layerKey], bv = b[layerKey];
+      if(av === null && bv === null) return 0;
+      if(av === null) return 1;
+      if(bv === null) return -1;
+      return bv - av;
+    });
+    tbody.innerHTML = urut.map(r => `
+      <tr>
+        <td><strong>${r.kecamatan}</strong></td>
+        <td>${r.kebakaran !== null ? r.kebakaran.toFixed(3) : "—"}</td>
+        <td>${r.kebakaran_kelas ? `<span class="badge ${krbBadgeKelas(r.kebakaran_kelas)}">${r.kebakaran_kelas}</span>` : `<span class="badge badge-neutral">Data terbatas</span>`}</td>
+        <td>${r.multibahaya !== null ? r.multibahaya.toFixed(3) : "—"}</td>
+        <td>${r.multibahaya_kelas ? `<span class="badge ${krbBadgeKelas(r.multibahaya_kelas)}">${r.multibahaya_kelas}</span>` : `<span class="badge badge-neutral">Data terbatas</span>`}</td>
+        <td>${r.kebakaran_cov}%</td>
+      </tr>`).join("");
+  }
+
+  select.addEventListener("change", (e) => gambarUlang(e.target.value));
+  document.getElementById("toggle-raster").addEventListener("change", () => gambarUlang(select.value));
+
+  gambarUlang("kebakaran");
+</script>
+</body>
+</html>

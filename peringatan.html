@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peringatan — FireSentry Karhutla</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-mount"></div>
+
+  <main class="main">
+    <div id="topbar-mount"></div>
+
+    <div class="card" style="margin-bottom:18px;">
+      <div class="card-head">
+        <div class="card-head-left">
+          <h3>⚠️ Peringatan Dini Aktif</h3>
+          <span class="tag" id="jumlah-peringatan"></span>
+        </div>
+        <div class="card-head-right" style="text-align:right;">
+          <span class="tag" id="status-cek-otomatis" style="color:var(--text-400);">Memuat status cek otomatis...</span>
+        </div>
+      </div>
+      <div id="daftar-peringatan" style="display:flex;flex-direction:column;gap:12px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-left">
+          <h3>🗂️ Riwayat Peringatan Sebelumnya</h3>
+          <span class="tag">Arsip peringatan yang telah ditutup</span>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>ID</th><th>Tingkat</th><th>Wilayah</th><th>Waktu</th><th>Status</th></tr></thead>
+          <tbody id="riwayat-peringatan-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/batas-kecamatan.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/notifikasi.js"></script>
+<script>
+  ewsInitPage("peringatan", {
+    title: "Peringatan Dini",
+    subtitle: ewsAksesPenuh()
+      ? "Peringatan otomatis berdasarkan hasil monitoring karhutla per kecamatan"
+      : "Peringatan otomatis berdasarkan hasil monitoring karhutla per kecamatan — hanya Admin 1 yang dapat menutup peringatan"
+  });
+
+  // Simpan daftar peringatan aktif saat ini di variabel supaya bisa diambil lagi saat tombol "Tutup" diklik
+  let peringatanAktif = [];
+
+  function renderAktif(){
+    peringatanAktif = generatePeringatanDariMonitoring();
+    document.getElementById("jumlah-peringatan").textContent = peringatanAktif.length + " peringatan aktif";
+
+    document.getElementById("daftar-peringatan").innerHTML = peringatanAktif.map((p, i) => `
+      <div class="alert-banner risk-${p.tingkat==="Tinggi"?"high":p.tingkat==="Sedang"?"medium":"low"}" style="margin-bottom:0;flex-direction:column;align-items:stretch;gap:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+          <div>
+            <div class="alert-title">
+              <span class="badge ${ewsBadgeClass(p.tingkat)}">${p.tingkat}</span>
+              <span class="badge badge-neutral">${p.jumlahWilayah} kecamatan · ${p.totalHotspot} titik panas</span>
+            </div>
+            <p class="alert-desc"><strong>${p.wilayah}</strong></p>
+            <p class="alert-desc">${p.pesan}</p>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+            <div class="alert-time">${p.waktu}</div>
+            ${ewsAksesPenuh() ? `<button class="btn btn-outline btn-sm" onclick="tutupPeringatan(${i})">✔ Tutup Peringatan</button>` : ""}
+          </div>
+        </div>
+
+        <div>
+          <button class="btn btn-outline btn-sm" id="btn-rincian-${i}" onclick="toggleRincian(${i})">
+            🔍 Lihat rincian ${p.totalHotspot} titik panas per kecamatan
+          </button>
+          <div id="rincian-${i}" style="display:none;margin-top:12px;background:#fff;border-radius:10px;padding:12px;border:1px solid var(--border);">
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr><th>Kelurahan / Wilayah</th><th>Kecamatan</th><th>Suhu (°C)</th><th>Kelembapan (%)</th><th>Titik Panas</th><th>Aksi</th></tr>
+                </thead>
+                <tbody>
+                  ${p.rincian.map(r => `
+                    <tr>
+                      <td><strong>${r.nama}</strong></td>
+                      <td>${r.kecamatan}</td>
+                      <td>${r.suhu.toFixed ? r.suhu.toFixed(1) : r.suhu}</td>
+                      <td>${r.kelembapan}</td>
+                      <td>${r.hotspot > 0 ? `<span class="badge badge-high">${r.hotspot} titik</span>` : '0'}</td>
+                      <td><a class="btn btn-outline btn-sm" href="peta.html?kecamatan=${encodeURIComponent(r.kecamatan)}&nama=${encodeURIComponent(r.nama)}">📍 Lihat di Peta</a></td>
+                    </tr>`).join("")}
+                  <tr style="font-weight:800;background:#fafbfe;">
+                    <td colspan="5" style="text-align:right;">Total titik panas</td>
+                    <td>${p.totalHotspot} titik</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>`).join("") || `<p style="color:var(--text-400);">Tidak ada peringatan aktif saat ini.</p>`;
+  }
+
+  function toggleRincian(i){
+    const el = document.getElementById("rincian-" + i);
+    const btn = document.getElementById("btn-rincian-" + i);
+    const buka = el.style.display === "none";
+    el.style.display = buka ? "block" : "none";
+    btn.textContent = (buka ? "▲ Sembunyikan rincian per kecamatan" : "🔍 Lihat rincian " + peringatanAktif[i].totalHotspot + " titik panas per kecamatan");
+  }
+
+  // Menampilkan kapan pengecekan OTOMATIS (GitHub Actions, jalan sendiri tiap
+  // 3 jam tanpa perlu ada yang buka browser) terakhir berhasil, supaya jelas
+  // beda antara "memang masih Rendah" vs "sistem otomatisnya berhenti jalan".
+  function renderStatusCekOtomatis(){
+    const el = document.getElementById("status-cek-otomatis");
+    const waktu = ewsWaktuStatusOtomatisTerakhir();
+    if(!waktu){
+      // null di sini berarti workflow GitHub Actions memang belum pernah
+      // berhasil jalan (mis. repo belum di-push / secrets belum diisi) —
+      // BUKAN error. Halaman tetap menampilkan data terkini lewat auto-sync
+      // langsung dari browser (BMKG + FIRMS) di bawah ini.
+      el.textContent = "🤖 Cek otomatis (GitHub Actions) belum pernah jalan — memakai sinkronisasi langsung dari browser";
+      return;
+    }
+    const tgl = new Date(waktu).toLocaleString("id-ID", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
+    el.textContent = "🤖 Cek otomatis terakhir: " + tgl + " WIB";
+  }
+
+  function renderArsip(){
+    const arsip = ewsSemuaArsipPeringatan();
+    document.getElementById("riwayat-peringatan-body").innerHTML = arsip.map(p => `
+      <tr>
+        <td><strong>${p.id}</strong></td>
+        <td><span class="badge ${ewsBadgeClass(p.tingkat)}">${p.tingkat}</span></td>
+        <td>${p.wilayah}</td>
+        <td>${p.waktu}</td>
+        <td><span class="badge badge-neutral">${p.status}</span></td>
+      </tr>`).join("") || `<tr><td colspan="5" style="text-align:center;color:var(--text-400);">Belum ada arsip.</td></tr>`;
+  }
+
+  function tutupPeringatan(index){
+    const entry = peringatanAktif[index];
+    if(!entry) return;
+    if(!confirm(`Tutup peringatan tingkat "${entry.tingkat}" untuk wilayah: ${entry.wilayah}?\n\nPeringatan ini akan pindah ke Riwayat, dan tidak akan muncul lagi sebagai aktif selama kondisi datanya belum berubah.`)) return;
+
+    ewsTutupPeringatan(entry);
+    renderAktif();
+    renderArsip();
+  }
+
+  renderAktif();
+  renderArsip();
+
+  // Muat hasil pengecekan OTOMATIS dari GitHub Actions (data/status-
+  // notifikasi-terakhir.json) lalu render ULANG begitu datang, supaya halaman
+  // ini ikut ter-update walau tidak ada seorang pun yang membuka halaman
+  // Monitoring Karhutla / klik "Sinkronkan Sekarang" secara manual.
+  ewsMuatStatusOtomatis().then(() => {
+    renderStatusCekOtomatis();
+    renderAktif();
+    renderArsip(); // supaya riwayat eskalasi otomatis (lihat ewsGetRiwayatEskalasiOtomatis()) ikut muncul di tabel Riwayat
+  });
+
+  // Auto-sync BMKG + FIRMS langsung dari browser (sama seperti Monitoring),
+  // supaya halaman Peringatan tidak tergantung 100% pada GitHub Actions untuk
+  // tampil mutakhir — berguna terutama SELAMA GitHub Actions belum aktif
+  // (repo belum di-push), supaya Peringatan tetap menampilkan kondisi
+  // TERKINI, bukan cuma data lama/placeholder. Aturan sama: hanya jalan
+  // kalau belum pernah sync atau sudah lewat 12 jam.
+  if(typeof ewsAutoSyncMonitoringJikaPerlu === "function"){
+    ewsAutoSyncMonitoringJikaPerlu().then(disinkronkan => {
+      if(disinkronkan) renderAktif();
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login Admin — FireSentry Karhutla BPBD Kota Pekanbaru</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="login-shell">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="brand-mark"><img src="assets/img/logo-bpbd.png" alt="Logo BPBD Kota Pekanbaru" class="brand-logo-img"></div>
+        <h1>FIRESENTRY KARHUTLA</h1>
+        <p>BPBD Kota Pekanbaru — Panel Admin</p>
+      </div>
+
+      <div class="login-error" id="login-error">Username atau password salah. Silakan coba lagi.</div>
+
+      <form id="login-form">
+        <div class="field">
+          <label for="username">Username</label>
+          <input type="text" id="username" placeholder="Masukkan username" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Masukkan password" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Masuk ke Dashboard</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="assets/js/components.js"></script>
+  <script>
+    // Jika sudah login, langsung arahkan sesuai level akses
+    if (ewsIsLoggedIn()) {
+      window.location.href = ewsLevelAkses() === "laporan" ? "laporan.html" : "dashboard.html";
+    }
+
+    const DEMO_USERS = [
+      { username: "admin1", password: "admin1bpbd2026", nama: "Admin 1", role: "Admin Besar / Admin BPBD (Akses Penuh)", levelAkses: "penuh" },
+      { username: "admin2", password: "admin2bpbd2026", nama: "Admin 2", role: "Petugas Lapangan (Akses Laporan)", levelAkses: "laporan" }
+    ];
+
+    document.getElementById("login-form").addEventListener("submit", function(e){
+      e.preventDefault();
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+      const errorBox = document.getElementById("login-error");
+
+      const found = DEMO_USERS.find(u => u.username === username && u.password === password);
+      if (found) {
+        localStorage.setItem("ews_karhutla_auth", JSON.stringify({
+          loggedIn: true, username: found.username, nama: found.nama, role: found.role,
+          levelAkses: found.levelAkses, loginAt: new Date().toISOString()
+        }));
+        window.location.href = found.levelAkses === "laporan" ? "laporan.html" : "dashboard.html";
+      } else {
+        errorBox.style.display = "block";
+      }
+    });
+  </script>
+</body>
+</html>

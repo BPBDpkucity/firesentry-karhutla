@@ -1,0 +1,16 @@
+# Local secrets / environment
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Local generated files
+coverage/

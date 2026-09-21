@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laporan Petugas — FireSentry Karhutla</title>
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  /* ---------- Formulir ---------- */
+  .form-section-title{
+    font-size:12.5px; font-weight:800; letter-spacing:.3px; text-transform:uppercase;
+    color:var(--text-600); margin:22px 0 12px; padding-bottom:8px;
+    border-bottom:1px solid var(--border);
+  }
+  .form-section-title:first-of-type{ margin-top:0; }
+  .grid-form-2{ display:grid; grid-template-columns:1fr 1fr; gap:0 20px; }
+  .grid-form-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:0 20px; }
+  @media (max-width:760px){ .grid-form-2, .grid-form-3{ grid-template-columns:1fr; } }
+
+  /* ---------- Tabel riwayat ---------- */
+  .cell-stack{ line-height:1.35; }
+  .cell-stack .ln1{ display:block; font-size:13.5px; color:var(--text-900); }
+  .cell-stack .ln2{ display:block; font-size:11.5px; color:var(--text-400); margin-top:2px; }
+  .cell-num{ text-align:center; color:var(--text-400); font-variant-numeric:tabular-nums; }
+  .btn-text-detail{
+    background:none; border:none; color:var(--text-600); font-size:12.5px; font-weight:700;
+    cursor:pointer; padding:0; text-decoration:underline;
+  }
+  .btn-text-detail:hover{ color:var(--text-900); }
+
+  /* ---------- Modal detail ---------- */
+  .modal-box-lg{ width:100%; max-width:760px; max-height:90vh; overflow-y:auto; }
+  .detail-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px 24px; }
+  .detail-item label{ display:block; font-size:11.5px; font-weight:700; color:var(--text-400); text-transform:uppercase; letter-spacing:.3px; margin-bottom:3px; }
+  .detail-item p{ margin:0; font-size:13.5px; color:var(--text-900); line-height:1.55; }
+  .detail-full{ grid-column:1 / -1; }
+  @media (max-width:640px){ .detail-grid{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-mount"></div>
+
+  <main class="main">
+    <div id="topbar-mount"></div>
+
+    <!-- ===================== FORMULIR INPUT LAPORAN ===================== -->
+    <div class="card" style="margin-bottom:18px;">
+      <div class="card-head">
+        <div class="card-head-left">
+          <h3>📝 Formulir Laporan Petugas Lapangan</h3>
+          <span class="tag">Diisi setiap selesai meninjau lokasi</span>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:#f8fafc;margin-bottom:20px;">
+        <span style="font-size:16px;">👤</span>
+        <span style="font-size:12.5px;color:var(--text-600);line-height:1.5;">
+          Diinput memakai akun <strong id="lp-akun-nama">—</strong><span id="lp-akun-role" style="color:var(--text-400);"></span>.
+          Isi <strong>Nama Petugas</strong> dengan nama orang yang benar-benar meninjau lokasi.
+        </span>
+      </div>
+
+      <form id="form-laporan-petugas">
+        <p class="form-section-title">1. Identitas &amp; Waktu Peninjauan</p>
+        <div class="grid-form-3">
+          <div class="field">
+            <label>Nama Petugas</label>
+            <input type="text" id="lp-nama-petugas" placeholder="Nama lengkap petugas peninjau" required>
+          </div>
+          <div class="field">
+            <label>Tanggal</label>
+            <input type="date" id="lp-tanggal" required>
+          </div>
+          <div class="field">
+            <label>Waktu</label>
+            <input type="time" id="lp-waktu" required>
+          </div>
+        </div>
+
+        <p class="form-section-title">2. Lokasi Peninjauan</p>
+        <div class="grid-form-2">
+          <div class="field">
+            <label>Kecamatan</label>
+            <select id="lp-kecamatan" required><option value="">— Pilih kecamatan —</option></select>
+          </div>
+          <div class="field">
+            <label>Kelurahan</label>
+            <input type="text" id="lp-kelurahan" placeholder="mis. Rejosari" required>
+          </div>
+        </div>
+        <div class="grid-form-2">
+          <div class="field">
+            <label>Latitude</label>
+            <input type="number" step="0.0001" id="lp-lat" placeholder="mis. 0.5486" required>
+          </div>
+          <div class="field">
+            <label>Longitude</label>
+            <input type="number" step="0.0001" id="lp-lng" placeholder="mis. 101.5192" required>
+          </div>
+        </div>
+        <div style="margin:-6px 0 4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-outline btn-sm" id="btn-lokasi-sekarang">📍 Gunakan Lokasi Saat Ini</button>
+          <span id="lp-lokasi-status" style="font-size:12px;color:var(--text-400);"></span>
+        </div>
+        <div class="field">
+          <label>Catatan Lokal</label>
+          <textarea id="lp-catatan" rows="3" placeholder="Kondisi lokasi, akses jalan, ketersediaan air, cuaca setempat, dsb."></textarea>
+        </div>
+
+        <p class="form-section-title">3. Kondisi Lahan &amp; Dampak</p>
+        <div class="grid-form-2">
+          <div class="field">
+            <label>Jenis Lahan</label>
+            <input type="text" id="lp-jenis-lahan" placeholder="mis. Lahan Gambut, Perkebunan Sawit, Semak Belukar">
+          </div>
+          <div class="field">
+            <label>Jumlah Terdampak (KK)</label>
+            <input type="number" min="0" step="1" id="lp-terdampak-kk" placeholder="0">
+          </div>
+        </div>
+        <div class="field">
+          <label>Tujuan Monitoring</label>
+          <textarea id="lp-tujuan" rows="2" placeholder="mis. Verifikasi titik panas hasil deteksi satelit" required></textarea>
+        </div>
+        <div class="field">
+          <label>Ancaman dan Dampak</label>
+          <textarea id="lp-ancaman" rows="3" placeholder="Potensi bahaya/dampak terhadap warga, permukiman, atau lingkungan sekitar"></textarea>
+        </div>
+
+        <p class="form-section-title">4. Tindakan &amp; Hasil Peninjauan</p>
+        <div class="grid-form-2">
+          <div class="field">
+            <label>Tindakan Pencegahan</label>
+            <textarea id="lp-pencegahan" rows="3" placeholder="Langkah pencegahan yang sudah/perlu dilakukan"></textarea>
+          </div>
+          <div class="field">
+            <label>Tindakan Penanganan</label>
+            <textarea id="lp-penanganan" rows="3" placeholder="Langkah penanganan di lapangan"></textarea>
+          </div>
+        </div>
+        <div class="field">
+          <label>Hasil Peninjauan</label>
+          <textarea id="lp-hasil" rows="3" placeholder="Kesimpulan/hasil akhir peninjauan" required></textarea>
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-outline" id="btn-reset-form">Bersihkan Formulir</button>
+          <button type="submit" class="btn btn-primary" style="flex:1;min-width:200px;">💾 Simpan Laporan</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ===================== RIWAYAT LAPORAN ===================== -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-left">
+          <h3>📋 Riwayat Laporan Petugas</h3>
+          <span class="tag" id="jumlah-laporan-petugas"></span>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <select class="select-chip" id="lp-filter-kecamatan"><option value="">Semua Kecamatan</option></select>
+          <input class="select-chip" id="lp-cari" placeholder="🔎 Cari petugas / kelurahan...">
+          <button class="btn btn-outline btn-sm" id="btn-unduh-excel">📊 Unduh Excel (.xlsx)</button>
+          <button class="btn btn-outline btn-sm" id="btn-unduh-csv">⬇ Unduh CSV</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:48px;">No.</th>
+              <th>Waktu Peninjauan</th>
+              <th>Petugas Peninjau</th>
+              <th>Lokasi</th>
+              <th>Jenis Lahan</th>
+              <th style="width:110px;">Terdampak</th>
+              <th style="width:170px;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="laporan-petugas-body"></tbody>
+        </table>
+      </div>
+
+      <p style="font-size:12px;color:var(--text-400);margin:12px 0 0;">
+        Tabel ini sengaja diringkas agar mudah dipindai. Versi lengkap sesuai format formulir resmi BPBD
+        (17 kolom) ada di tab <a href="monitoring.html?tab=laporan">📝 Laporan Petugas Lapangan</a> pada halaman
+        Monitoring Karhutla, dan pada berkas Excel/CSV yang diunduh dari tombol di atas. Tombol
+        <strong>✏️ Edit</strong> tersedia untuk memperbaiki kesalahan penulisan pada laporan yang sudah
+        tersimpan<span id="lp-catatan-hapus"></span>.
+      </p>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Detail Laporan (hanya lihat) -->
+<div id="modal-detail-lp-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:100;align-items:center;justify-content:center;padding:20px;">
+  <div class="card modal-box-lg" style="margin:16px;">
+    <div class="card-head">
+      <h3>📝 Detail Laporan — <span id="detail-lp-judul"></span></h3>
+      <button type="button" id="btn-tutup-detail-lp" aria-label="Tutup" style="background:none;border:none;font-size:22px;line-height:1;color:var(--text-400);cursor:pointer;">&times;</button>
+    </div>
+    <div id="detail-lp-body"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+      <button type="button" class="btn btn-outline" id="btn-tutup-detail-lp-2">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/components.js"></script>
+<script>
+  ewsInitPage("laporan", {
+    title: "Laporan Petugas",
+    subtitle: "Input dan riwayat laporan hasil peninjauan lapangan petugas BPBD"
+  });
+
+  // Tombol "🗑️ Hapus" hanya untuk Admin 1 (akses penuh) — lihat baris
+  // ${ewsAksesPenuh() ? ... : ""} di renderLaporanPetugas(). Admin 2 hanya
+  // boleh mengisi laporan baru dan mengedit laporan yang sudah ada.
+  document.getElementById("lp-catatan-hapus").textContent = ewsAksesPenuh()
+    ? "; tombol 🗑️ Hapus hanya tersedia untuk Admin 1."
+    : ".";
+
+  /* =====================================================================
+     Halaman ini fokus pada SATU pekerjaan: memasukkan laporan hasil
+     kunjungan lapangan petugas, lalu melihat riwayatnya. Setiap laporan
+     yang disimpan otomatis tampil di tab "Laporan Petugas Lapangan" pada
+     halaman Monitoring Karhutla (sumber data sama: ewsSemuaLaporanPetugas
+     di data.js), jadi tidak ada input ganda.
+     ===================================================================== */
+
+  function isoLokal(d){
+    const tz = d.getTimezoneOffset() * 60000;
+    return new Date(d - tz).toISOString().slice(0, 10);
+  }
+
+  function formatTgl(iso){
+    if(!iso) return "-";
+    return new Date(iso).toLocaleDateString("id-ID", { day:"2-digit", month:"short", year:"numeric" });
+  }
+
+  const formLP = document.getElementById("form-laporan-petugas");
+
+  // Tampilkan akun yang sedang dipakai. Penting karena Admin 2 adalah akun
+  // BERSAMA untuk semua petugas — harus jelas bedanya antara "akun penginput"
+  // dan "nama petugas peninjau".
+  (function tampilkanAkunAktif(){
+    const u = ewsCurrentUser();
+    document.getElementById("lp-akun-nama").textContent = (u && u.nama) || "Tidak diketahui";
+    document.getElementById("lp-akun-role").textContent = (u && u.role) ? " (" + u.role + ")" : "";
+  })();
+
+  // Daftar kecamatan diambil dari KECAMATAN_ADM4 (data.js) supaya nama
+  // kecamatan yang tersimpan selalu cocok dengan yang dipakai modul lain
+  // (Monitoring, Peta, Peringatan) — tidak ada salah ketik.
+  function isiDaftarKecamatan(selectId, labelSemua){
+    const select = document.getElementById(selectId);
+    const nilaiLama = select.value;
+    const daftar = Object.keys(KECAMATAN_ADM4).sort((a, b) => a.localeCompare(b));
+    select.innerHTML = `<option value="">${labelSemua}</option>` +
+      daftar.map(k => `<option value="${k}">${k}</option>`).join("");
+    select.value = nilaiLama;
+  }
+  isiDaftarKecamatan("lp-kecamatan", "— Pilih kecamatan —");
+  isiDaftarKecamatan("lp-filter-kecamatan", "Semua Kecamatan");
+
+  function siapkanFormLP(){
+    formLP.reset();
+    // Sengaja TIDAK diisi otomatis dengan nama akun: akun Admin 2 dipakai
+    // bersama banyak petugas, jadi nama peninjau harus diketik manual.
+    document.getElementById("lp-nama-petugas").value = "";
+    document.getElementById("lp-tanggal").value = isoLokal(new Date());
+    document.getElementById("lp-waktu").value = new Date().toTimeString().slice(0, 5);
+    document.getElementById("lp-lokasi-status").textContent = "";
+    isiDaftarKecamatan("lp-kecamatan", "— Pilih kecamatan —");
+  }
+  siapkanFormLP();
+  document.getElementById("btn-reset-form").addEventListener("click", siapkanFormLP);
+
+  // Isi latitude/longitude otomatis dari GPS perangkat petugas.
+  document.getElementById("btn-lokasi-sekarang").addEventListener("click", () => {
+    const status = document.getElementById("lp-lokasi-status");
+    if(!navigator.geolocation){
+      status.textContent = "Perangkat/browser tidak mendukung deteksi lokasi.";
+      return;
+    }
+    status.textContent = "Mendeteksi lokasi…";
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        document.getElementById("lp-lat").value = pos.coords.latitude.toFixed(4);
+        document.getElementById("lp-lng").value = pos.coords.longitude.toFixed(4);
+        status.textContent = "✓ Koordinat berhasil diisi otomatis.";
+      },
+      () => { status.textContent = "Gagal mendeteksi lokasi. Isi koordinat secara manual."; },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  });
+
+  formLP.addEventListener("submit", function(e){
+    e.preventDefault();
+    const kecamatan = document.getElementById("lp-kecamatan").value;
+    const terdampakVal = document.getElementById("lp-terdampak-kk").value;
+
+    const laporanBaru = {
+      id: "RPT-" + Date.now(),
+      namaPetugas: document.getElementById("lp-nama-petugas").value.trim(),
+      tanggal: document.getElementById("lp-tanggal").value,
+      waktu: document.getElementById("lp-waktu").value,
+      kecamatan,
+      kelurahan: document.getElementById("lp-kelurahan").value.trim(),
+      lat: parseFloat(document.getElementById("lp-lat").value),
+      lng: parseFloat(document.getElementById("lp-lng").value),
+      catatanLokal: document.getElementById("lp-catatan").value.trim(),
+      jenisLahan: document.getElementById("lp-jenis-lahan").value.trim(),
+      tujuanMonitoring: document.getElementById("lp-tujuan").value.trim(),
+      ancamanDampak: document.getElementById("lp-ancaman").value.trim(),
+      jumlahTerdampakKK: terdampakVal === "" ? 0 : parseInt(terdampakVal, 10),
+      tindakanPencegahan: document.getElementById("lp-pencegahan").value.trim(),
+      tindakanPenanganan: document.getElementById("lp-penanganan").value.trim(),
+      hasilPeninjauan: document.getElementById("lp-hasil").value.trim(),
+      dibuatPada: new Date().toISOString(),
+      // Jejak audit: akun sistem yang dipakai saat laporan ini dimasukkan.
+      diinputOleh: (ewsCurrentUser() && ewsCurrentUser().nama) || "Tidak diketahui",
+      diinputOlehRole: (ewsCurrentUser() && ewsCurrentUser().role) || ""
+    };
+
+    ewsTambahLaporanPetugas(laporanBaru);
+
+    // Segarkan catatan naratif kecamatan terkait supaya modal Detail di
+    // halaman Monitoring ikut menampilkan info dari laporan TERBARU. Angka
+    // suhu/kelembapan/titik panas TIDAK diubah — itu tetap milik sinkronisasi
+    // BMKG/FIRMS.
+    if(typeof ewsGetWilayahRisikoGabungan === "function"){
+      const w = ewsGetWilayahRisikoGabungan().find(x => x.kecamatan === kecamatan);
+      if(w){
+        ewsSimpanUpdateMonitoring(kecamatan, w.suhu, w.kelembapan, w.hotspot, {
+          jenisLahan: laporanBaru.jenisLahan,
+          tujuanMonitoring: laporanBaru.tujuanMonitoring,
+          catatanLokal: laporanBaru.catatanLokal,
+          ancamanDampak: laporanBaru.ancamanDampak,
+          jumlahTerdampakKK: laporanBaru.jumlahTerdampakKK,
+          tindakanPencegahan: laporanBaru.tindakanPencegahan,
+          tindakanPenanganan: laporanBaru.tindakanPenanganan,
+          hasilPeninjauan: laporanBaru.hasilPeninjauan
+        });
+      }
+    }
+
+    siapkanFormLP();
+    renderLaporanPetugas();
+    alert(`Laporan Kec. ${kecamatan} (Kel. ${laporanBaru.kelurahan}) berhasil disimpan.\n\n` +
+          `Laporan ini otomatis tampil di tab "Laporan Petugas Lapangan" pada halaman Monitoring Karhutla.`);
+  });
+
+  /* ---------------- Riwayat laporan ---------------- */
+  function laporanTersaring(){
+    const kecamatanFilter = document.getElementById("lp-filter-kecamatan").value;
+    const cari = document.getElementById("lp-cari").value.toLowerCase();
+    return ewsSemuaLaporanPetugas()
+      .filter(l => !kecamatanFilter || l.kecamatan === kecamatanFilter)
+      .filter(l => !cari || l.namaPetugas.toLowerCase().includes(cari) || (l.kelurahan || "").toLowerCase().includes(cari));
+  }
+
+  function renderLaporanPetugas(){
+    const rows = laporanTersaring();
+    document.getElementById("jumlah-laporan-petugas").textContent = rows.length + " laporan";
+    document.getElementById("laporan-petugas-body").innerHTML = rows.map((l, i) => `
+      <tr>
+        <td class="cell-num">${i + 1}</td>
+        <td class="cell-stack">
+          <span class="ln1">${formatTgl(l.tanggal)}</span>
+          <span class="ln2">${l.waktu || "-"} WIB</span>
+        </td>
+        <td class="cell-stack">
+          <span class="ln1">${l.namaPetugas}</span>
+          <span class="ln2">Diinput: ${l.diinputOleh || "-"}</span>
+        </td>
+        <td class="cell-stack">
+          <span class="ln1"><strong>${l.kecamatan}</strong></span>
+          <span class="ln2">Kel. ${l.kelurahan || "-"}</span>
+        </td>
+        <td>${l.jenisLahan || "-"}</td>
+        <td>${(l.jumlahTerdampakKK ?? 0)} KK</td>
+        <td>
+          <div style="display:flex;gap:12px;align-items:center;white-space:nowrap;">
+            <button type="button" class="btn-text-detail" onclick="bukaDetailLP('${l.id}')">Detail</button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="ewsBukaModalEditLaporan('${l.id}', renderLaporanPetugas)">✏️ Edit</button>
+            ${ewsAksesPenuh() ? `<button type="button" class="btn btn-outline btn-sm" style="color:var(--red-600);border-color:#fecaca;" onclick="hapusLaporanPetugasUI('${l.id}')">🗑️ Hapus</button>` : ""}
+          </div>
+        </td>
+      </tr>`).join("") || `<tr><td colspan="7" style="text-align:center;color:var(--text-400);padding:28px 12px;">Belum ada laporan. Isi formulir di atas untuk menambahkan laporan pertama.</td></tr>`;
+  }
+  document.getElementById("lp-filter-kecamatan").addEventListener("change", renderLaporanPetugas);
+  document.getElementById("lp-cari").addEventListener("input", renderLaporanPetugas);
+  renderLaporanPetugas();
+
+  /* ---------------- Unduh Excel / CSV ----------------
+     Memakai definisi kolom resmi bersama (EWS_KOLOM_LAPORAN_PETUGAS di
+     data.js), jadi berkas yang diunduh dari sini identik dengan yang
+     diunduh dari halaman Monitoring. */
+  document.getElementById("btn-unduh-excel").addEventListener("click", () => {
+    const rows = laporanTersaring();
+    if(!rows.length){ alert("Tidak ada laporan untuk diunduh pada filter ini."); return; }
+    const namaFile = "laporan-petugas-lapangan-" + isoLokal(new Date()) + ".xlsx";
+    if(!ewsUnduhLaporanPetugasExcel(rows, namaFile)){
+      alert("Pustaka Excel belum termuat (periksa koneksi internet). Silakan gunakan tombol Unduh CSV sebagai gantinya.");
+    }
+  });
+
+  document.getElementById("btn-unduh-csv").addEventListener("click", () => {
+    const rows = laporanTersaring();
+    const aman = (v) => `"${String(v ?? "-").replace(/"/g, '""')}"`;
+    const csv = [
+      ewsJudulKolomLaporanPetugas().map(aman).join(","),
+      ...rows.map((l, i) => ewsBarisLaporanPetugas(l, i).map(aman).join(","))
+    ].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type:"text/csv;charset=utf-8;" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "laporan-petugas-lapangan-" + isoLokal(new Date()) + ".csv";
+    a.click();
+  });
+
+  /* ---------------- Modal detail & hapus ---------------- */
+  function baris(label, value){
+    const tampil = (value !== undefined && value !== null && String(value).trim() !== "") ? value : "-";
+    return `<div class="detail-item"><label>${label}</label><p>${tampil}</p></div>`;
+  }
+
+  function bukaDetailLP(id){
+    const l = ewsSemuaLaporanPetugas().find(x => x.id === id);
+    if(!l) return;
+    document.getElementById("detail-lp-judul").textContent = `${l.kecamatan} — Kel. ${l.kelurahan || "-"}`;
+    document.getElementById("detail-lp-body").innerHTML = `
+      <div class="detail-grid">
+        ${baris("Nama Petugas Peninjau", l.namaPetugas)}
+        ${baris("Diinput Oleh (Akun Sistem)", l.diinputOleh ? `${l.diinputOleh}${l.diinputOlehRole ? " — " + l.diinputOlehRole : ""}` : "-")}
+        ${baris("Tanggal &amp; Waktu", formatTgl(l.tanggal) + " · " + (l.waktu || "-") + " WIB")}
+        ${baris("Koordinat", (isFinite(l.lat) && isFinite(l.lng)) ? `${Number(l.lat).toFixed(4)}, ${Number(l.lng).toFixed(4)}` : "-")}
+        ${baris("Jenis Lahan", l.jenisLahan)}
+        ${baris("Jumlah Terdampak (KK)", l.jumlahTerdampakKK)}
+        <div class="detail-item detail-full">${baris("Catatan Lokal", l.catatanLokal)}</div>
+        <div class="detail-item detail-full">${baris("Tujuan Monitoring", l.tujuanMonitoring)}</div>
+        <div class="detail-item detail-full">${baris("Ancaman dan Dampak", l.ancamanDampak)}</div>
+        <div class="detail-item detail-full">${baris("Tindakan Pencegahan", l.tindakanPencegahan)}</div>
+        <div class="detail-item detail-full">${baris("Tindakan Penanganan", l.tindakanPenanganan)}</div>
+        <div class="detail-item detail-full">${baris("Hasil Peninjauan", l.hasilPeninjauan)}</div>
+      </div>`;
+    document.getElementById("modal-detail-lp-overlay").style.display = "flex";
+  }
+  function tutupDetailLP(){ document.getElementById("modal-detail-lp-overlay").style.display = "none"; }
+  document.getElementById("btn-tutup-detail-lp").addEventListener("click", tutupDetailLP);
+  document.getElementById("btn-tutup-detail-lp-2").addEventListener("click", tutupDetailLP);
+  document.getElementById("modal-detail-lp-overlay").addEventListener("click", (e) => {
+    if(e.target.id === "modal-detail-lp-overlay") tutupDetailLP();
+  });
+
+  function hapusLaporanPetugasUI(id){
+    const l = ewsSemuaLaporanPetugas().find(x => x.id === id);
+    if(!l) return;
+    const yakin = confirm(`Hapus laporan Kec. ${l.kecamatan} (Kel. ${l.kelurahan || "-"}) oleh ${l.namaPetugas}?\nTindakan ini tidak dapat dibatalkan.`);
+    if(!yakin) return;
+    ewsHapusLaporanPetugas(id);
+    renderLaporanPetugas();
+  }
+</script>
+</body>
+</html>
