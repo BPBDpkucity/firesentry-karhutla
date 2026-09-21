@@ -1,0 +1,56 @@
+name: TEST — FireSentry Telegram Simulasi PERINGATAN
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-telegram-peringatan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Kirim notifikasi Telegram simulasi PERINGATAN
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "TELEGRAM_BOT_TOKEN atau TELEGRAM_CHAT_ID belum tersedia di GitHub Secrets."
+            exit 1
+          fi
+
+          WAKTU=$(TZ="Asia/Jakarta" date '+%d %B %Y, %H:%M WIB')
+
+          PESAN=$(cat <<EOF
+          🔴 <b>PERINGATAN DINI KARHUTLA</b>
+          Status: <b>PERINGATAN</b>
+          Kecamatan: Senapelan
+          Kelurahan: Simulasi Demo
+          Suhu: 33°C | Kelembapan: 45%
+          Titik panas: 3
+          Waktu: ${WAKTU}
+
+          ⚠️ <b>SIMULASI DEMO</b>
+          Pesan ini hanya untuk pengujian notifikasi Telegram dan bukan kondisi aktual.
+
+          🔗 Lihat peta kejadian
+          EOF
+          )
+
+          RESPONSE=$(curl -sS -w "\n%{http_code}"             -X POST             "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"             -H "Content-Type: application/json"             --data "$(python3 -c 'import json,sys; print(json.dumps({"chat_id":sys.argv[1],"text":sys.argv[2],"parse_mode":"HTML"}))' "$TELEGRAM_CHAT_ID" "$PESAN")")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n 1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "HTTP status: $HTTP_CODE"
+          echo "Telegram response: $BODY"
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Gagal mengirim notifikasi Telegram."
+            exit 1
+          fi
+
+          echo "Notifikasi simulasi PERINGATAN berhasil dikirim."
