@@ -1,0 +1,65 @@
+name: TEST — FireSentry Telegram
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-telegram:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Kirim 1 notifikasi tes ke grup
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          node --input-type=module <<'NODE'
+          const token = process.env.TELEGRAM_BOT_TOKEN;
+          const chatId = process.env.TELEGRAM_CHAT_ID;
+
+          if (!token || !chatId) {
+            console.error("Secret Telegram belum lengkap.");
+            process.exit(1);
+          }
+
+          const message =
+            "🧪 <b>FIRESENTRY — TEST EWS</b>\n\n" +
+            "Notifikasi otomatis dari GitHub Actions berhasil dikirim ke grup.\n" +
+            "Status: <b>TEST BERHASIL</b>\n" +
+            "Waktu: " +
+            new Date().toLocaleString("id-ID", {
+              timeZone: "Asia/Jakarta"
+            }) +
+            " WIB";
+
+          const response = await fetch(
+            `https://api.telegram.org/bot${token}/sendMessage`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                chat_id: chatId,
+                text: message,
+                parse_mode: "HTML"
+              })
+            }
+          );
+
+          const result = await response.json();
+
+          if (!response.ok || !result.ok) {
+            console.error("Telegram gagal mengirim pesan.");
+            console.error("HTTP:", response.status);
+            console.error("Telegram:", result.description || "Unknown error");
+            process.exit(1);
+          }
+
+          console.log("Telegram berhasil mengirim 1 pesan ke grup.");
+          console.log("Message ID:", result.result.message_id);
+          NODE
