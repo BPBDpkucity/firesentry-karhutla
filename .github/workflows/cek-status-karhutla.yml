@@ -3,7 +3,8 @@ name: FireSentry EWS — Cek Risiko & Telegram
 on:
   workflow_dispatch:
   schedule:
-    # GitHub Actions schedule berjalan dalam UTC. 00:00 UTC = 07:00 WIB.
+    # GitHub Actions memakai UTC.
+    # Setiap 3 jam.
     - cron: '0 */3 * * *'
 
 permissions:
@@ -17,6 +18,7 @@ jobs:
   cek-ews:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,6 +28,24 @@ jobs:
         with:
           node-version: 20
 
+      # ==========================================================
+      # 1. UPDATE DATA BMKG FDRS TERLEBIH DAHULU
+      # ==========================================================
+      - name: Sinkronkan FDRS BMKG (FFMC + FWI)
+        run: node scripts/sync-bmkg-fdrs.mjs
+
+      # ==========================================================
+      # 2. UPDATE AQI / CUACA IQAIR (OPSIONAL)
+      # ==========================================================
+      - name: Sinkronkan AQI/cuaca Pekanbaru dari IQAir (opsional)
+        env:
+          IQAIR_API_KEY: ${{ secrets.IQAIR_API_KEY }}
+        run: node scripts/sync-air-quality.mjs
+
+      # ==========================================================
+      # 3. JALANKAN MESIN EWS
+      #    SEKARANG SUDAH MEMBACA FFMC TERBARU
+      # ==========================================================
       - name: Jalankan mesin EWS
         env:
           FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}
@@ -33,19 +53,19 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: node scripts/cek-status-karhutla.mjs
 
-      - name: Sinkronkan FDRS BMKG (FFMC + FWI)
-        run: node scripts/sync-bmkg-fdrs.mjs
-
-      - name: Sinkronkan AQI/cuaca Pekanbaru dari IQAir (opsional)
-        env:
-          IQAIR_API_KEY: ${{ secrets.IQAIR_API_KEY }}
-        run: node scripts/sync-air-quality.mjs
-
+      # ==========================================================
+      # 4. SIMPAN HASIL STATUS EWS
+      # ==========================================================
       - name: Commit hasil status publik
         run: |
           git config user.name "FireSentry EWS Bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/status-notifikasi-terakhir.json data/air-quality-pekanbaru.json data/bmkg-fdrs.json
+
+          git add \
+            data/status-notifikasi-terakhir.json \
+            data/air-quality-pekanbaru.json \
+            data/bmkg-fdrs.json
+
           if git diff --cached --quiet; then
             echo "Tidak ada perubahan status yang perlu di-commit."
           else
