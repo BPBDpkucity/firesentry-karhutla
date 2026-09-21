@@ -1,22 +1,426 @@
 {
-  "Pekanbaru Kota": null,
-  "Tenayan Raya": null,
-  "Rumbai": null,
-  "Rumbai Barat": null,
-  "Rumbai Timur": null,
-  "Kulim": null,
-  "Bukit Raya": null,
-  "Marpoyan Damai": null,
-  "Payung Sekaki": null,
-  "Tuah Madani": null,
-  "Binawidya": null,
-  "Sukajadi": null,
-  "Sail": null,
-  "Lima Puluh": null,
-  "Senapelan": null,
+  "Pekanbaru Kota": {
+    "risiko": "Rendah",
+    "statusEws": "NORMAL",
+    "alasan": [
+      "Tidak ada hotspot NASA FIRMS pada data yang diperiksa",
+      "Kategori FFMC BMKG belum tersedia sebagai data terstruktur"
+    ],
+    "suhu": 24,
+    "kelembapan": 98,
+    "anginKecepatan": 4.5,
+    "anginArah": "NW",
+    "waktuPrakiraan": "2026-09-22 00:00:00",
+    "hotspot": 0,
+    "hotspotPersistent": false,
+    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "fdrs": {
+      "source": "BMKG SPARTAN",
+      "numericValuesAvailable": false,
+      "ffmc": null,
+      "ffmcCategory": null,
+      "fwi": null,
+      "observationUrl": "https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_ffmc_obs.png"
+    }
+  },
+  "Tenayan Raya": {
+    "risiko": "Rendah",
+    "statusEws": "NORMAL",
+    "alasan": [
+      "Tidak ada hotspot NASA FIRMS pada data yang diperiksa",
+      "Kategori FFMC BMKG belum tersedia sebagai data terstruktur"
+    ],
+    "suhu": 24,
+    "kelembapan": 98,
+    "anginKecepatan": 4.5,
+    "anginArah": "NW",
+    "waktuPrakiraan": "2026-09-22 01:00:00",
+    "hotspot": 0,
+    "hotspotPersistent": false,
+    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "fdrs": {
+      "source": "BMKG SPARTAN",
+      "numericValuesAvailable": false,
+      "ffmc": null,
+      "ffmcCategory": null,
+      "fwi": null,
+      "observationUrl": "https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_ffmc_obs.png"
+    }
+  },
+  "Rumbai": {
+    "risiko": "Rendah",
+    "statusEws": "NORMAL",
+    "alasan": [
+      "Tidak ada hotspot NASA FIRMS pada data yang diperiksa",
+      "Kategori FFMC BMKG belum tersedia sebagai data terstruktur"
+    ],
+    "suhu": 24,
+    "kelembapan": 98,
+    "anginKecepatan": 4.3,
+    "anginArah": "NW",
+    "waktuPrakiraan": "2026-09-22 01:00:00",
+    "hotspot": 0,
+    "hotspotPersistent": false,
+    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "fdrs": {
+      "source": "BMKG SPARTAN",
+      "numericValuesAvailable": false,
+      "ffmc": null,
+      "ffmcCategory": null,
+      "fwi": null,
+      "observationUrl": "https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_ffmc_obs.png"
+    }
+  },
+  "Rumbai Barat": {
+    "risiko": "Rendah",
+    "statusEws": "NORMAL",
+    "alasan": [
+      "Tidak ada hotspot NASA FIRMS pada data yang diperiksa",
+      "Kategori FFMC BMKG belum tersedia sebagai data terstruktur"
+    ],
+    "suhu": 24,
+    "kelembapan": 99,
+    "anginKecepatan": 5.5,
+    "anginArah": "NW",
+    "waktuPrakiraan": "2026-09-22 01:00:00",
+    "hotspot": 0,
+    "hotspotPersistent": false,
+    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "fdrs": {
+      "source": "BMKG SPARTAN",
+      "numericValuesAvailable": false,
+      "ffmc": null,
+      "ffmcCategory": null,
+      "fwi": null,
+      "observationUrl": "https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_ffmc_obs.png"
+    }
+  },
+  "Rumbai Timur": {
+    "risiko": "Rendah",
+    "statusEws": "NORMAL",
+    "alasan": [
+      "Tidak ada hotspot NASA FIRMS pada data yang diperiksa",
+      "Kategori FFMC BMKG belum tersedia sebagai data terstruktur"
+    ],
+    "suhu": 24,
+    "kelembapan": 98,
+    "anginKecepatan": 4.5,
+    "anginArah": "NW",
+    "waktuPrakiraan": "2026-09-22 01:00:00",
+    "hotspot": 0,
+    "hotspotPersistent": false,
+    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "fdrs": {
+      "source": "BMKG SPARTAN",
+      "numericValuesAvailable": false,
+      "ffmc": null,
+      "ffmcCategory": null,
+      "fwi": null,
+      "observationUrl": "https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_ffmc_obs.png"
+    }
+  },
+  "Kulim": {
+    "risiko": "Rendah",
+    "statusEws": "NORMAL",
+    "alasan": [
+      "Tidak ada hotspot NASA FIRMS pada data yang diperiksa",
+      "Kategori FFMC BMKG belum tersedia sebagai data terstruktur"
+    ],
+    "suhu": 24,
+    "kelembapan": 98,
+    "anginKecepatan": 4.9,
+    "anginArah": "NW",
+    "waktuPrakiraan": "2026-09-22 01:00:00",
+    "hotspot": 0,
+    "hotspotPersistent": false,
+    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "fdrs": {
+      "source": "BMKG SPARTAN",
+      "numericValuesAvailable": false,
+      "ffmc": null,
+      "ffmcCategory": null,
+      "fwi": null,
+      "observationUrl": "https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_ffmc_obs.png"
+    }
+  },
+  "Bukit Raya": {
+    "risiko": "Rendah",
+    "statusEws": "NORMAL",
+    "alasan": [
+      "Tidak ada hotspot NASA FIRMS pada data yang diperiksa",
+      "Kategori FFMC BMKG belum tersedia sebagai data terstruktur"
+    ],
+    "suhu": 24,
+    "kelembapan": 98,
+    "anginKecepatan": 4.5,
+    "anginArah": "NW",
+    "waktuPrakiraan": "2026-09-22 01:00:00",
+    "hotspot": 0,
+    "hotspotPersistent": false,
+    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "fdrs": {
+      "source": "BMKG SPARTAN",
+      "numericValuesAvailable": false,
+      "ffmc": null,
+      "ffmcCategory": null,
+      "fwi": null,
+      "observationUrl": "https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_ffmc_obs.png"
+    }
+  },
+  "Marpoyan Damai": {
+    "risiko": "Rendah",
+    "statusEws": "NORMAL",
+    "alasan": [
+      "Tidak ada hotspot NASA FIRMS pada data yang diperiksa",
+      "Kategori FFMC BMKG belum tersedia sebagai data terstruktur"
+    ],
+    "suhu": 24,
+    "kelembapan": 98,
+    "anginKecepatan": 4.3,
+    "anginArah": "NW",
+    "waktuPrakiraan": "2026-09-22 01:00:00",
+    "hotspot": 0,
+    "hotspotPersistent": false,
+    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "fdrs": {
+      "source": "BMKG SPARTAN",
+      "numericValuesAvailable": false,
+      "ffmc": null,
+      "ffmcCategory": null,
+      "fwi": null,
+      "observationUrl": "https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_ffmc_obs.png"
+    }
+  },
+  "Payung Sekaki": {
+    "risiko": "Rendah",
+    "statusEws": "NORMAL",
+    "alasan": [
+      "Tidak ada hotspot NASA FIRMS pada data yang diperiksa",
+      "Kategori FFMC BMKG belum tersedia sebagai data terstruktur"
+    ],
+    "suhu": 24,
+    "kelembapan": 98,
+    "anginKecepatan": 4.3,
+    "anginArah": "NW",
+    "waktuPrakiraan": "2026-09-22 01:00:00",
+    "hotspot": 0,
+    "hotspotPersistent": false,
+    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "fdrs": {
+      "source": "BMKG SPARTAN",
+      "numericValuesAvailable": false,
+      "ffmc": null,
+      "ffmcCategory": null,
+      "fwi": null,
+      "observationUrl": "https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_ffmc_obs.png"
+    }
+  },
+  "Tuah Madani": {
+    "risiko": "Rendah",
+    "statusEws": "NORMAL",
+    "alasan": [
+      "Tidak ada hotspot NASA FIRMS pada data yang diperiksa",
+      "Kategori FFMC BMKG belum tersedia sebagai data terstruktur"
+    ],
+    "suhu": 24,
+    "kelembapan": 98,
+    "anginKecepatan": 2.2,
+    "anginArah": "W",
+    "waktuPrakiraan": "2026-09-22 01:00:00",
+    "hotspot": 0,
+    "hotspotPersistent": false,
+    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "fdrs": {
+      "source": "BMKG SPARTAN",
+      "numericValuesAvailable": false,
+      "ffmc": null,
+      "ffmcCategory": null,
+      "fwi": null,
+      "observationUrl": "https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_ffmc_obs.png"
+    }
+  },
+  "Binawidya": {
+    "risiko": "Rendah",
+    "statusEws": "NORMAL",
+    "alasan": [
+      "Tidak ada hotspot NASA FIRMS pada data yang diperiksa",
+      "Kategori FFMC BMKG belum tersedia sebagai data terstruktur"
+    ],
+    "suhu": 24,
+    "kelembapan": 98,
+    "anginKecepatan": 4.3,
+    "anginArah": "NW",
+    "waktuPrakiraan": "2026-09-22 01:00:00",
+    "hotspot": 0,
+    "hotspotPersistent": false,
+    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "fdrs": {
+      "source": "BMKG SPARTAN",
+      "numericValuesAvailable": false,
+      "ffmc": null,
+      "ffmcCategory": null,
+      "fwi": null,
+      "observationUrl": "https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_ffmc_obs.png"
+    }
+  },
+  "Sukajadi": {
+    "risiko": "Rendah",
+    "statusEws": "NORMAL",
+    "alasan": [
+      "Tidak ada hotspot NASA FIRMS pada data yang diperiksa",
+      "Kategori FFMC BMKG belum tersedia sebagai data terstruktur"
+    ],
+    "suhu": 24,
+    "kelembapan": 98,
+    "anginKecepatan": 4.5,
+    "anginArah": "NW",
+    "waktuPrakiraan": "2026-09-22 01:00:00",
+    "hotspot": 0,
+    "hotspotPersistent": false,
+    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "fdrs": {
+      "source": "BMKG SPARTAN",
+      "numericValuesAvailable": false,
+      "ffmc": null,
+      "ffmcCategory": null,
+      "fwi": null,
+      "observationUrl": "https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_ffmc_obs.png"
+    }
+  },
+  "Sail": {
+    "risiko": "Rendah",
+    "statusEws": "NORMAL",
+    "alasan": [
+      "Tidak ada hotspot NASA FIRMS pada data yang diperiksa",
+      "Kategori FFMC BMKG belum tersedia sebagai data terstruktur"
+    ],
+    "suhu": 24,
+    "kelembapan": 98,
+    "anginKecepatan": 4.5,
+    "anginArah": "NW",
+    "waktuPrakiraan": "2026-09-22 01:00:00",
+    "hotspot": 0,
+    "hotspotPersistent": false,
+    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "fdrs": {
+      "source": "BMKG SPARTAN",
+      "numericValuesAvailable": false,
+      "ffmc": null,
+      "ffmcCategory": null,
+      "fwi": null,
+      "observationUrl": "https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_ffmc_obs.png"
+    }
+  },
+  "Lima Puluh": {
+    "risiko": "Rendah",
+    "statusEws": "NORMAL",
+    "alasan": [
+      "Tidak ada hotspot NASA FIRMS pada data yang diperiksa",
+      "Kategori FFMC BMKG belum tersedia sebagai data terstruktur"
+    ],
+    "suhu": 24,
+    "kelembapan": 98,
+    "anginKecepatan": 4.5,
+    "anginArah": "NW",
+    "waktuPrakiraan": "2026-09-22 01:00:00",
+    "hotspot": 0,
+    "hotspotPersistent": false,
+    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "fdrs": {
+      "source": "BMKG SPARTAN",
+      "numericValuesAvailable": false,
+      "ffmc": null,
+      "ffmcCategory": null,
+      "fwi": null,
+      "observationUrl": "https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_ffmc_obs.png"
+    }
+  },
+  "Senapelan": {
+    "risiko": "Rendah",
+    "statusEws": "NORMAL",
+    "alasan": [
+      "Tidak ada hotspot NASA FIRMS pada data yang diperiksa",
+      "Kategori FFMC BMKG belum tersedia sebagai data terstruktur"
+    ],
+    "suhu": 24,
+    "kelembapan": 98,
+    "anginKecepatan": 4.5,
+    "anginArah": "NW",
+    "waktuPrakiraan": "2026-09-22 01:00:00",
+    "hotspot": 0,
+    "hotspotPersistent": false,
+    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "fdrs": {
+      "source": "BMKG SPARTAN",
+      "numericValuesAvailable": false,
+      "ffmc": null,
+      "ffmcCategory": null,
+      "fwi": null,
+      "observationUrl": "https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_ffmc_obs.png"
+    }
+  },
   "_meta": {
-    "diperbaruiPada": null,
-    "sumber": "Belum pernah dijalankan — workflow GitHub Actions (.github/workflows/cek-status-karhutla.yml) baru aktif setelah repo di-push ke GitHub dengan secrets (TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, FIRMS_MAP_KEY) terisi.",
+    "diperbaruiPada": "2026-09-21T17:16:52.907Z",
+    "sumber": "GitHub Actions terjadwal (BMKG + NASA FIRMS + BMKG FDRS + IQAir terpisah)",
+    "fdrs": {
+      "source": "BMKG SPARTAN / Fire Danger Rating System",
+      "wilayah": "Indonesia — digunakan sebagai konteks resmi untuk Riau/Pekanbaru",
+      "fetchedAt": null,
+      "numericValuesAvailable": false,
+      "ffmc": null,
+      "fwi": null,
+      "ffmcInterpretation": [
+        {
+          "range": "0–72",
+          "level": "Rendah",
+          "description": "Bahan bakar ringan relatif basah dan sulit terbakar."
+        },
+        {
+          "range": "73–77",
+          "level": "Sedang",
+          "description": "Bahan bakar ringan lembap dan cukup sulit terbakar."
+        },
+        {
+          "range": "78–82",
+          "level": "Tinggi",
+          "description": "Bahan bakar ringan kering dan mudah terbakar."
+        },
+        {
+          "range": ">82",
+          "level": "Sangat Tinggi",
+          "description": "Bahan bakar ringan sangat kering dan sangat mudah terbakar."
+        }
+      ],
+      "fwiInterpretation": [
+        {
+          "range": "0–1",
+          "level": "Rendah",
+          "description": "Intensitas api rendah."
+        },
+        {
+          "range": "2–6",
+          "level": "Sedang",
+          "description": "Intensitas api sedang."
+        },
+        {
+          "range": "7–13",
+          "level": "Tinggi",
+          "description": "Intensitas api tinggi."
+        },
+        {
+          "range": ">13",
+          "level": "Sangat Tinggi",
+          "description": "Intensitas api sangat tinggi."
+        }
+      ],
+      "sources": {
+        "pageFfmc": "https://www.bmkg.go.id/cuaca/karhutla/ffmc",
+        "pageFwi": "https://www.bmkg.go.id/cuaca/karhutla/fwi",
+        "imageFfmcObservation": "https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_ffmc_obs.png",
+        "imageFwiObservation": "https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_fwi_obs.png"
+      },
+      "note": "Metadata awal. Jalankan workflow untuk memeriksa sumber BMKG terbaru. FireSentry tidak menebak nilai numerik FFMC/FWI dari warna peta."
+    },
     "kecamatanGagal": [],
     "riwayatEskalasi": []
   }

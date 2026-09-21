@@ -1,27 +1,77 @@
 {
   "source": "BMKG SPARTAN / Fire Danger Rating System",
   "wilayah": "Indonesia — digunakan sebagai konteks resmi untuk Riau/Pekanbaru",
-  "fetchedAt": null,
+  "fetchedAt": "2026-09-21T17:17:16.059Z",
   "numericValuesAvailable": false,
   "ffmc": null,
   "fwi": null,
   "ffmcInterpretation": [
-    {"range":"0–72","level":"Rendah","description":"Bahan bakar ringan relatif basah dan sulit terbakar."},
-    {"range":"73–77","level":"Sedang","description":"Bahan bakar ringan lembap dan cukup sulit terbakar."},
-    {"range":"78–82","level":"Tinggi","description":"Bahan bakar ringan kering dan mudah terbakar."},
-    {"range":">82","level":"Sangat Tinggi","description":"Bahan bakar ringan sangat kering dan sangat mudah terbakar."}
+    {
+      "range": "0–72",
+      "level": "Rendah",
+      "description": "Bahan bakar ringan relatif basah dan sulit terbakar."
+    },
+    {
+      "range": "73–77",
+      "level": "Sedang",
+      "description": "Bahan bakar ringan lembap dan cukup sulit terbakar."
+    },
+    {
+      "range": "78–82",
+      "level": "Tinggi",
+      "description": "Bahan bakar ringan kering dan mudah terbakar."
+    },
+    {
+      "range": ">82",
+      "level": "Sangat Tinggi",
+      "description": "Bahan bakar ringan sangat kering dan sangat mudah terbakar."
+    }
   ],
   "fwiInterpretation": [
-    {"range":"0–1","level":"Rendah","description":"Intensitas api rendah."},
-    {"range":"2–6","level":"Sedang","description":"Intensitas api sedang."},
-    {"range":"7–13","level":"Tinggi","description":"Intensitas api tinggi."},
-    {"range":">13","level":"Sangat Tinggi","description":"Intensitas api sangat tinggi."}
+    {
+      "range": "0–1",
+      "level": "Rendah",
+      "description": "Intensitas api rendah."
+    },
+    {
+      "range": "2–6",
+      "level": "Sedang",
+      "description": "Intensitas api sedang."
+    },
+    {
+      "range": "7–13",
+      "level": "Tinggi",
+      "description": "Intensitas api tinggi."
+    },
+    {
+      "range": ">13",
+      "level": "Sangat Tinggi",
+      "description": "Intensitas api sangat tinggi."
+    }
   ],
   "sources": {
-    "pageFfmc":"https://www.bmkg.go.id/cuaca/karhutla/ffmc",
-    "pageFwi":"https://www.bmkg.go.id/cuaca/karhutla/fwi",
-    "imageFfmcObservation":"https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_ffmc_obs.png",
-    "imageFwiObservation":"https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_fwi_obs.png"
+    "pageFfmc": "https://www.bmkg.go.id/cuaca/karhutla/ffmc",
+    "pageFwi": "https://www.bmkg.go.id/cuaca/karhutla/fwi",
+    "imageFfmcObservation": "https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_ffmc_obs.png",
+    "imageFwiObservation": "https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_fwi_obs.png"
   },
-  "note":"Metadata awal. Jalankan workflow untuk memeriksa sumber BMKG terbaru. FireSentry tidak menebak nilai numerik FFMC/FWI dari warna peta."
+  "checks": {
+    "pageFfmc": {
+      "ok": true,
+      "contentType": "text/html;charset=utf-8"
+    },
+    "pageFwi": {
+      "ok": true,
+      "contentType": "text/html;charset=utf-8"
+    },
+    "imageFfmcObservation": {
+      "ok": true,
+      "contentType": "image/png"
+    },
+    "imageFwiObservation": {
+      "ok": true,
+      "contentType": "image/png"
+    }
+  },
+  "note": "FFMC/FWI BMKG dipakai sebagai indikator meteorologis resmi tambahan. Karena BMKG saat ini mempublikasikannya sebagai peta, FireSentry tidak menebak nilai numerik dari warna peta. Nilai risiko utama tetap dihitung dari BMKG cuaca + NASA FIRMS, sedangkan FDRS menjadi konfirmasi/konteks sampai tersedia feed numerik resmi."
 }
