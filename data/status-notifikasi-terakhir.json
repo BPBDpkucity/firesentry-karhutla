@@ -10,10 +10,11 @@
     "kelembapan": 98,
     "anginKecepatan": 4.5,
     "anginArah": "NW",
-    "waktuPrakiraan": "2026-09-22 00:00:00",
+    "waktuPrakiraan": "2026-09-22 01:00:00",
     "hotspot": 0,
     "hotspotPersistent": false,
-    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "hotspotLokasi": null,
+    "waktuCek": "2026-09-21T18:09:10.803Z",
     "fdrs": {
       "source": "BMKG SPARTAN",
       "numericValuesAvailable": false,
@@ -37,7 +38,8 @@
     "waktuPrakiraan": "2026-09-22 01:00:00",
     "hotspot": 0,
     "hotspotPersistent": false,
-    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "hotspotLokasi": null,
+    "waktuCek": "2026-09-21T18:09:10.803Z",
     "fdrs": {
       "source": "BMKG SPARTAN",
       "numericValuesAvailable": false,
@@ -61,7 +63,8 @@
     "waktuPrakiraan": "2026-09-22 01:00:00",
     "hotspot": 0,
     "hotspotPersistent": false,
-    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "hotspotLokasi": null,
+    "waktuCek": "2026-09-21T18:09:10.803Z",
     "fdrs": {
       "source": "BMKG SPARTAN",
       "numericValuesAvailable": false,
@@ -85,7 +88,8 @@
     "waktuPrakiraan": "2026-09-22 01:00:00",
     "hotspot": 0,
     "hotspotPersistent": false,
-    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "hotspotLokasi": null,
+    "waktuCek": "2026-09-21T18:09:10.803Z",
     "fdrs": {
       "source": "BMKG SPARTAN",
       "numericValuesAvailable": false,
@@ -109,7 +113,8 @@
     "waktuPrakiraan": "2026-09-22 01:00:00",
     "hotspot": 0,
     "hotspotPersistent": false,
-    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "hotspotLokasi": null,
+    "waktuCek": "2026-09-21T18:09:10.803Z",
     "fdrs": {
       "source": "BMKG SPARTAN",
       "numericValuesAvailable": false,
@@ -133,7 +138,8 @@
     "waktuPrakiraan": "2026-09-22 01:00:00",
     "hotspot": 0,
     "hotspotPersistent": false,
-    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "hotspotLokasi": null,
+    "waktuCek": "2026-09-21T18:09:10.803Z",
     "fdrs": {
       "source": "BMKG SPARTAN",
       "numericValuesAvailable": false,
@@ -157,7 +163,8 @@
     "waktuPrakiraan": "2026-09-22 01:00:00",
     "hotspot": 0,
     "hotspotPersistent": false,
-    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "hotspotLokasi": null,
+    "waktuCek": "2026-09-21T18:09:10.803Z",
     "fdrs": {
       "source": "BMKG SPARTAN",
       "numericValuesAvailable": false,
@@ -181,7 +188,8 @@
     "waktuPrakiraan": "2026-09-22 01:00:00",
     "hotspot": 0,
     "hotspotPersistent": false,
-    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "hotspotLokasi": null,
+    "waktuCek": "2026-09-21T18:09:10.803Z",
     "fdrs": {
       "source": "BMKG SPARTAN",
       "numericValuesAvailable": false,
@@ -205,7 +213,8 @@
     "waktuPrakiraan": "2026-09-22 01:00:00",
     "hotspot": 0,
     "hotspotPersistent": false,
-    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "hotspotLokasi": null,
+    "waktuCek": "2026-09-21T18:09:10.803Z",
     "fdrs": {
       "source": "BMKG SPARTAN",
       "numericValuesAvailable": false,
@@ -229,7 +238,8 @@
     "waktuPrakiraan": "2026-09-22 01:00:00",
     "hotspot": 0,
     "hotspotPersistent": false,
-    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "hotspotLokasi": null,
+    "waktuCek": "2026-09-21T18:09:10.803Z",
     "fdrs": {
       "source": "BMKG SPARTAN",
       "numericValuesAvailable": false,
@@ -253,7 +263,8 @@
     "waktuPrakiraan": "2026-09-22 01:00:00",
     "hotspot": 0,
     "hotspotPersistent": false,
-    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "hotspotLokasi": null,
+    "waktuCek": "2026-09-21T18:09:10.803Z",
     "fdrs": {
       "source": "BMKG SPARTAN",
       "numericValuesAvailable": false,
@@ -277,7 +288,8 @@
     "waktuPrakiraan": "2026-09-22 01:00:00",
     "hotspot": 0,
     "hotspotPersistent": false,
-    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "hotspotLokasi": null,
+    "waktuCek": "2026-09-21T18:09:10.803Z",
     "fdrs": {
       "source": "BMKG SPARTAN",
       "numericValuesAvailable": false,
@@ -301,7 +313,8 @@
     "waktuPrakiraan": "2026-09-22 01:00:00",
     "hotspot": 0,
     "hotspotPersistent": false,
-    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "hotspotLokasi": null,
+    "waktuCek": "2026-09-21T18:09:10.803Z",
     "fdrs": {
       "source": "BMKG SPARTAN",
       "numericValuesAvailable": false,
@@ -325,7 +338,8 @@
     "waktuPrakiraan": "2026-09-22 01:00:00",
     "hotspot": 0,
     "hotspotPersistent": false,
-    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "hotspotLokasi": null,
+    "waktuCek": "2026-09-21T18:09:10.803Z",
     "fdrs": {
       "source": "BMKG SPARTAN",
       "numericValuesAvailable": false,
@@ -344,12 +358,13 @@
     ],
     "suhu": 24,
     "kelembapan": 98,
-    "anginKecepatan": 4.5,
-    "anginArah": "NW",
-    "waktuPrakiraan": "2026-09-22 01:00:00",
+    "anginKecepatan": 8.8,
+    "anginArah": "SW",
+    "waktuPrakiraan": "2026-09-22 02:00:00",
     "hotspot": 0,
     "hotspotPersistent": false,
-    "waktuCek": "2026-09-21T17:16:52.907Z",
+    "hotspotLokasi": null,
+    "waktuCek": "2026-09-21T18:09:10.803Z",
     "fdrs": {
       "source": "BMKG SPARTAN",
       "numericValuesAvailable": false,
@@ -360,12 +375,12 @@
     }
   },
   "_meta": {
-    "diperbaruiPada": "2026-09-21T17:16:52.907Z",
+    "diperbaruiPada": "2026-09-21T18:09:10.803Z",
     "sumber": "GitHub Actions terjadwal (BMKG + NASA FIRMS + BMKG FDRS + IQAir terpisah)",
     "fdrs": {
       "source": "BMKG SPARTAN / Fire Danger Rating System",
       "wilayah": "Indonesia — digunakan sebagai konteks resmi untuk Riau/Pekanbaru",
-      "fetchedAt": null,
+      "fetchedAt": "2026-09-21T17:17:16.059Z",
       "numericValuesAvailable": false,
       "ffmc": null,
       "fwi": null,
@@ -419,7 +434,25 @@
         "imageFfmcObservation": "https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_ffmc_obs.png",
         "imageFwiObservation": "https://dataweb.bmkg.go.id/cuaca/spartan/36_indonesia_fwi_obs.png"
       },
-      "note": "Metadata awal. Jalankan workflow untuk memeriksa sumber BMKG terbaru. FireSentry tidak menebak nilai numerik FFMC/FWI dari warna peta."
+      "checks": {
+        "pageFfmc": {
+          "ok": true,
+          "contentType": "text/html;charset=utf-8"
+        },
+        "pageFwi": {
+          "ok": true,
+          "contentType": "text/html;charset=utf-8"
+        },
+        "imageFfmcObservation": {
+          "ok": true,
+          "contentType": "image/png"
+        },
+        "imageFwiObservation": {
+          "ok": true,
+          "contentType": "image/png"
+        }
+      },
+      "note": "FFMC/FWI BMKG dipakai sebagai indikator meteorologis resmi tambahan. Karena BMKG saat ini mempublikasikannya sebagai peta, FireSentry tidak menebak nilai numerik dari warna peta. Nilai risiko utama tetap dihitung dari BMKG cuaca + NASA FIRMS, sedangkan FDRS menjadi konfirmasi/konteks sampai tersedia feed numerik resmi."
     },
     "kecamatanGagal": [],
     "riwayatEskalasi": []
