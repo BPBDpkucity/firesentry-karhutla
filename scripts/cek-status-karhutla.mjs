@@ -39,7 +39,6 @@ const BMKG_ENDPOINT = "https://api.bmkg.go.id/publik/prakiraan-cuaca";
 const FIRMS_BOX = "101.30,0.40,101.60,0.70"; // cakupan diperlebar agar seluruh bentang Kota Pekanbaru/Rumbai Timur ikut terambil
 const FILE_STATUS = path.join(process.cwd(), "data", "status-notifikasi-terakhir.json");
 const FDRS_FILE = path.join(process.cwd(), "data", "bmkg-fdrs.json");
-const PUBLIC_MAP_URL = process.env.PUBLIC_MAP_URL || "https://bpbdpkucity.github.io/firesentry-karhutla/peta.html";
 
 // Kode wilayah (adm4) per kecamatan — disalin dari KECAMATAN_ADM4 di assets/js/data.js
 const KECAMATAN_ADM4 = {
@@ -293,16 +292,53 @@ function kelompokkanHotspot(titikFirms) {
   return jumlah;
 }
 
-
-function kelompokkanTitikHotspot(titikFirms) {
+function kelompokkanDetailHotspot(titikFirms) {
   const hasil = {};
   for (const p of titikFirms) {
-    const kec = p.kecamatan || kecamatanTerdekat(parseFloat(p.latitude), parseFloat(p.longitude));
-    if (!kec) continue;
-    if (!hasil[kec]) hasil[kec] = [];
-    hasil[kec].push(p);
+    const lat = Number(p.latitude), lng = Number(p.longitude);
+    const kec = p.kecamatan || kecamatanTerdekat(lat, lng);
+    if (!kec || !Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+    (hasil[kec] ||= []).push({
+      latitude: lat,
+      longitude: lng,
+      confidence: p.confidence ?? null,
+      frp: p.frp ?? null,
+      acq_date: p.acq_date ?? null,
+      acq_time: p.acq_time ?? null,
+      satellite: p.satellite ?? null,
+      daynight: p.daynight ?? null,
+    });
   }
   return hasil;
+}
+
+function waktuHotspotWib(hotspot) {
+  if (!hotspot?.acq_date) return new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
+  const raw = String(hotspot.acq_time ?? '').padStart(4, '0');
+  const hh = raw.slice(0, 2), mm = raw.slice(2, 4);
+  const iso = `${hotspot.acq_date}T${hh}:${mm}:00Z`;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
+  return d.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', dateStyle: 'long', timeStyle: 'short' }) + ' WIB';
+}
+
+async function cariKelurahan(lat, lng) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return '-';
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&zoom=18&addressdetails=1`;
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'FireSentry-Karhutla-EWS/1.0 (BPBD Pekanbaru)'
+      }
+    });
+    if (!res.ok) return '-';
+    const json = await res.json();
+    const a = json?.address || {};
+    return a.village || a.suburb || a.neighbourhood || a.quarter || '-';
+  } catch (e) {
+    console.warn('[Wilayah] Reverse geocoding kelurahan gagal:', e.message);
+    return '-';
+  }
 }
 
 async function supabaseRequest(pathname, options = {}) {
@@ -350,74 +386,6 @@ async function simpanKeSupabase(statusBaru, riwayatBaru, mulaiPada, selesaiPada,
   await supabaseRequest("ews_runs", { method: "POST", body: JSON.stringify([{ mulai_pada: mulaiPada, selesai_pada: selesaiPada, status: gagal, kecamatan_gagal: kecamatanGagal, sumber: "GitHub Actions" }]) });
 }
 
-
-function escapeHtml(value) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-function waktuFirmsKeWib(acqDate, acqTime) {
-  if (!acqDate || acqTime == null || acqTime === '') return null;
-  const raw = String(acqTime).padStart(4, '0');
-  const hh = Number(raw.slice(0, 2));
-  const mm = Number(raw.slice(2, 4));
-  if (!Number.isFinite(hh) || !Number.isFinite(mm) || hh > 23 || mm > 59) return null;
-
-  // NASA FIRMS acq_time adalah UTC. Pekanbaru memakai WIB (UTC+7).
-  const utc = new Date(`${acqDate}T${raw.slice(0, 2)}:${raw.slice(2, 4)}:00Z`);
-  if (Number.isNaN(utc.getTime())) return null;
-
-  return utc.toLocaleString('id-ID', {
-    timeZone: 'Asia/Jakarta',
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).replace(/\./g, ':') + ' WIB';
-}
-
-function pilihHotspotUtama(points) {
-  if (!Array.isArray(points) || !points.length) return null;
-  return [...points].sort((a, b) => {
-    const da = `${a.acq_date || ''} ${(String(a.acq_time ?? '')).padStart(4, '0')}`;
-    const db = `${b.acq_date || ''} ${(String(b.acq_time ?? '')).padStart(4, '0')}`;
-    if (db !== da) return db.localeCompare(da);
-    return normalisasiConfidenceFirms(b.confidence) - normalisasiConfidenceFirms(a.confidence);
-  })[0];
-}
-
-async function reverseGeocodeKelurahan(lat, lng) {
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-  try {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&zoom=18&addressdetails=1`;
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': 'FireSentryKarhutla/1.0 (BPBD Pekanbaru EWS)',
-        'Accept-Language': 'id',
-      },
-    });
-    if (!res.ok) return null;
-    const json = await res.json();
-    const a = json?.address || {};
-    return a.village || a.suburb || a.city_district || null;
-  } catch (e) {
-    console.warn('[Wilayah] Reverse geocoding kelurahan gagal:', e.message);
-    return null;
-  }
-}
-
-function statusTelegram(risiko) {
-  if (risiko === 'Rendah') return { label: 'RENDAH', emoji: '🟢' };
-  if (risiko === 'Sedang') return { label: 'SEDANG', emoji: '🟠' };
-  return { label: 'TINGGI', emoji: '🔴' };
-}
-
 async function kirimTelegram(pesan) {
   if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
     console.warn("[Telegram] TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID belum diset di GitHub Secrets, notifikasi dilewati.");
@@ -436,32 +404,24 @@ async function kirimTelegram(pesan) {
   return true;
 }
 
-function susunPesan(kecamatan, risiko, detail) {
-  const status = statusTelegram(risiko);
-  const hotspot = detail?.hotspotLokasi;
-  const lat = Number(hotspot?.latitude);
-  const lng = Number(hotspot?.longitude);
-  const punyaKoordinat = Number.isFinite(lat) && Number.isFinite(lng);
-
-  const kelurahan = detail?.kelurahan || 'Tidak teridentifikasi';
-  const suhu = detail?.suhu ?? '-';
-  const kelembapan = detail?.kelembapan ?? '-';
-  const jumlahHotspot = detail?.hotspot ?? 0;
-  const waktu = detail?.waktuHotspot || detail?.waktuCek || '-';
-
-  const mapUrl = punyaKoordinat
-    ? `${PUBLIC_MAP_URL}?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}&fokus=hotspot&kecamatan=${encodeURIComponent(kecamatan)}&kelurahan=${encodeURIComponent(kelurahan)}`
-    : `${PUBLIC_MAP_URL}?kecamatan=${encodeURIComponent(kecamatan)}`;
-
+async function susunPesan(kecamatan, statusEws, detail) {
+  const emoji = statusEws === 'PERINGATAN' ? '🔴' : statusEws === 'SIAGA' ? '🟠' : statusEws === 'WASPADA' ? '🟡' : '🟢';
+  const statusLabel = statusEws === 'NORMAL' ? 'NORMAL' : statusEws === 'WASPADA' ? 'SEDANG' : statusEws === 'SIAGA' ? 'SIAGA' : 'PERINGATAN';
+  const hotspot = detail?.hotspotDetail || null;
+  const kelurahan = hotspot ? await cariKelurahan(Number(hotspot.latitude), Number(hotspot.longitude)) : '-';
+  const lat = hotspot ? Number(hotspot.latitude).toFixed(6) : '-';
+  const lng = hotspot ? Number(hotspot.longitude).toFixed(6) : '-';
+  const waktu = hotspot ? waktuHotspotWib(hotspot) : new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', dateStyle: 'long', timeStyle: 'short' }) + ' WIB';
+  const mapUrl = hotspot ? `https://rrencuyy.github.io/firesentry_karhutla_pku/peta.html?fokus=hotspot&lat=${encodeURIComponent(hotspot.latitude)}&lng=${encodeURIComponent(hotspot.longitude)}&kecamatan=${encodeURIComponent(kecamatan)}&kelurahan=${encodeURIComponent(kelurahan)}` : 'https://rrencuyy.github.io/firesentry_karhutla_pku/peta.html';
   return (
-    `${status.emoji} <b>PERINGATAN DINI KARHUTLA</b>\n` +
-    `Status: <b>${status.label}</b>\n` +
-    `Kecamatan: <b>${escapeHtml(kecamatan)}</b>\n` +
-    `Kelurahan: <b>${escapeHtml(kelurahan)}</b>\n` +
-    `Suhu: ${escapeHtml(suhu)}°C | Kelembapan: ${escapeHtml(kelembapan)}%\n` +
-    `Titik panas: ${escapeHtml(jumlahHotspot)}\n` +
-    `Waktu: ${escapeHtml(waktu)}\n\n` +
-    `latitude & longitude: ${punyaKoordinat ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : 'tidak tersedia'}\n\n` +
+    `${emoji} <b>PERINGATAN DINI KARHUTLA</b>\n` +
+    `Status: <b>${statusLabel}</b>\n` +
+    `Kecamatan: <b>${kecamatan}</b>\n` +
+    `Kelurahan: <b>${kelurahan}</b>\n` +
+    `Suhu: <b>${detail?.suhu ?? '-'}°C</b> | Kelembapan: <b>${detail?.kelembapan ?? '-'}%</b>\n` +
+    `Titik panas: <b>${detail?.hotspot ?? 0}</b>\n` +
+    `Waktu: ${waktu}\n\n` +
+    `latitude &amp; longitude: <b>${lat}, ${lng}</b>\n\n` +
     `🔗 <a href="${mapUrl}">Lihat peta kejadian</a>`
   );
 }
@@ -528,7 +488,7 @@ async function main() {
     return [];
   });
   const hotspotPerKecamatan = kelompokkanHotspot(titikFirms);
-  const titikHotspotPerKecamatan = kelompokkanTitikHotspot(titikFirms);
+  const hotspotDetailPerKecamatan = kelompokkanDetailHotspot(titikFirms);
 
   const kecamatanGagal = []; // nama kecamatan yang BMKG-nya gagal diambil kali ini
   const sekarangIso = new Date().toISOString();
@@ -550,6 +510,7 @@ async function main() {
     }
 
     const hotspot = hotspotPerKecamatan[kecamatan] || 0;
+    const hotspotDetail = (hotspotDetailPerKecamatan[kecamatan] || [])[0] || null;
     const entriLama = statusLama[kecamatan];
     const hotspotLama = Number(entriLama?.hotspot || 0);
     const persistent = hotspot > 0 && hotspotLama > 0;
@@ -558,7 +519,6 @@ async function main() {
     const risikoBaru = risikoLegacyDariStatus(statusEws);
     const alasan = alasanStatusEws({ hotspot, persistent, ffmcCategory });
 
-    const hotspotUtama = pilihHotspotUtama(titikHotspotPerKecamatan[kecamatan] || []);
     statusBaru[kecamatan] = {
       risiko: risikoBaru,
       statusEws,
@@ -570,13 +530,7 @@ async function main() {
       waktuPrakiraan: cuaca.waktuPrakiraan,
       hotspot,
       hotspotPersistent: persistent,
-      hotspotLokasi: hotspotUtama ? {
-        latitude: Number(hotspotUtama.latitude),
-        longitude: Number(hotspotUtama.longitude),
-        acqDate: hotspotUtama.acq_date || null,
-        acqTime: hotspotUtama.acq_time || null,
-        satellite: hotspotUtama.satellite || null,
-      } : null,
+      hotspotDetail,
       waktuCek: sekarangIso,
       fdrs: fdrs ? { source: 'BMKG SPARTAN', numericValuesAvailable: !!fdrs.numericValuesAvailable, ffmc: fdrs.ffmc ?? null, ffmcCategory, fwi: fdrs.fwi ?? null, observationUrl: fdrs.sources?.imageFfmcObservation || null } : null,
     };
@@ -593,21 +547,7 @@ async function main() {
       // terkirim (token belum diisi, Telegram error, dll). Ini yang membuat
       // histori "sempat Sedang" tidak ikut hilang hanya karena notifikasinya
       // gagal/belum aktif.
-      const detailNotifikasi = statusBaru[kecamatan];
-      if (detailNotifikasi.hotspotLokasi) {
-        detailNotifikasi.waktuHotspot = waktuFirmsKeWib(
-          detailNotifikasi.hotspotLokasi.acqDate,
-          detailNotifikasi.hotspotLokasi.acqTime
-        ) || new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
-        detailNotifikasi.kelurahan = await reverseGeocodeKelurahan(
-          detailNotifikasi.hotspotLokasi.latitude,
-          detailNotifikasi.hotspotLokasi.longitude
-        );
-      } else {
-        detailNotifikasi.waktuHotspot = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
-        detailNotifikasi.kelurahan = null;
-      }
-      const terkirim = await kirimTelegram(susunPesan(kecamatan, risikoBaru, detailNotifikasi));
+      const terkirim = await kirimTelegram(await susunPesan(kecamatan, statusEws, statusBaru[kecamatan]));
       if (terkirim) dinotifikasi.push(kecamatan);
       riwayatEskalasi.unshift({
         kecamatan,
